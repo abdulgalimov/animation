@@ -81,13 +81,13 @@ var animation = animation||new (function Animation() {});
     var prototype = anim.util.extend(Scale, anim.core.Property, 'Property');
 
     prototype._getTargetValue = function(key) {
-        if (key === 'scaleX') return this.root._target.scale.x;
-        if (key === 'scaleY') return this.root._target.scale.y;
+        if (key === 'scaleX') return this.target.scale.x;
+        if (key === 'scaleY') return this.target.scale.y;
         return 0;
     };
     prototype._setTargetValue = function(key, value) {
-        if (key === 'scaleX') this.root._target.scale.x = value;
-        else if (key === 'scaleY') this.root._target.scale.y = value;
+        if (key === 'scaleX') this.target.scale.x = value;
+        else if (key === 'scaleY') this.target.scale.y = value;
         return 0;
     };
 
@@ -140,13 +140,13 @@ var animation = animation||new (function Animation() {});
     var prototype = anim.util.extend(Skew, anim.core.Property, 'Property');
 
     prototype._getTargetValue = function(key) {
-        if (key === 'skewX') return this.root._target.skew.x;
-        if (key === 'skewY') return this.root._target.skew.y;
+        if (key === 'skewX') return this.target.skew.x;
+        if (key === 'skewY') return this.target.skew.y;
         return 0;
     };
     prototype._setTargetValue = function(key, value) {
-        if (key === 'skewX') this.root._target.skew.x = value;
-        else if (key === 'skewY') this.root._target.skew.y = value;
+        if (key === 'skewX') this.target.skew.x = value;
+        else if (key === 'skewY') this.target.skew.y = value;
         return 0;
     };
 
@@ -240,13 +240,13 @@ var animation = animation||new (function Animation() {});
     var prototype = anim.util.extend(Anchor, anim.core.Property, 'Property');
 
     prototype._getTargetValue = function(key) {
-        if (key === 'anchorX') return this.root._target.anchor.x;
-        if (key === 'anchorY') return this.root._target.anchor.y;
+        if (key === 'anchorX') return this.target.anchor.x;
+        if (key === 'anchorY') return this.target.anchor.y;
         return 0;
     };
     prototype._setTargetValue = function(key, value) {
-        if (key === 'anchorX') this.root._target.anchor.x = value;
-        else if (key === 'anchorY') this.root._target.anchor.y = value;
+        if (key === 'anchorX') this.target.anchor.x = value;
+        else if (key === 'anchorY') this.target.anchor.y = value;
     };
 
     anim.anchorTo = function() {
@@ -304,7 +304,7 @@ var animation = animation||new (function Animation() {});
     };
 
     prototype.apply = function() {
-        this.root._target.visible = this._value;
+        this.target.visible = this._value;
     };
 
     anim.visible = function(value) {
@@ -333,8 +333,8 @@ var animation = animation||new (function Animation() {});
     };
 
     prototype.apply = function() {
-        if (this.root._target.parent) {
-            this.root._target.parent.removeChild(this.root._target);
+        if (this.target.parent) {
+            this.target.parent.removeChild(this.target);
         }
     };
 

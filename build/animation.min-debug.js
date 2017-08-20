@@ -119,6 +119,13 @@ var animation = animation||new (function Animation() {});
                 return p;
             }
         },
+        target: {
+            get: function() {
+                var p = this;
+                while (p._parent && !p._target) p = p._parent;
+                return p._target;
+            }
+        },
         elapsed: {
             get: function() {return this._elapsed;}
         },
@@ -490,7 +497,7 @@ var animation = animation||new (function Animation() {});
                 if (this._flags & anim.util.Flags.CUSTOM_PROPERTY) {
                     targetValue = this._getTargetValue(key);
                 } else {
-                    targetValue = this.root._target[key];
+                    targetValue = this.target[key];
                 }
             }
             if (this._info.from.isRelative) {
@@ -539,7 +546,7 @@ var animation = animation||new (function Animation() {});
             if (this._flags & anim.util.Flags.CUSTOM_PROPERTY) {
                 this._setTargetValue(key, this._current[key]);
             } else {
-                this.root._target[key] = this._current[key];
+                this.target[key] = this._current[key];
             }
         }
         //

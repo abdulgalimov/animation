@@ -7,7 +7,7 @@ document.body.appendChild(app.view);
 
 PIXI.loader
     .add('table', 'examples/res/table.png')
-    .add('coin', 'examples/res/coin.png')
+    .add('coin', 'examples/res/coin1.png')
     .load(onAssetsLoaded);
 
 function onAssetsLoaded(loader, res) {
@@ -91,7 +91,6 @@ function testAnim(coin) {
             ]).duration(1000)
         ])
     ])
-        .setName('root')
         .setTarget(coin)
         .finish()
         .loop()
