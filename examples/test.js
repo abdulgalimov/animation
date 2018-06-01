@@ -20,12 +20,8 @@ function onAssetsLoaded(loader, res) {
     coin.anchor.set(0.5);
     app.stage.addChild(coin);
     //
-    animation.util.ticker.registerStarter(function(active) {
-        if (active) {
-            app.ticker.add(animation.util.ticker.update, animation.util.ticker);
-        } else {
-            app.ticker.remove(animation.util.ticker.update, animation.util.ticker);
-        }
+    app.ticker.add(function() {
+        Anim.update();
     });
     //
     initUI();
@@ -35,14 +31,15 @@ function onAssetsLoaded(loader, res) {
 function initUI() {
     var pauseButton = document.getElementById('pauseButton');
     pauseButton.onclick = function() {
-        switch (myAnim.state) {
-            case animation.State.STOP:
+        switch (myAnim.playState) {
+            case Anim.PlayState.STOP:
+            case Anim.PlayState.FINISH:
                 myAnim.play();
                 break;
-            case animation.State.PLAY:
+            case Anim.PlayState.PLAY:
                 myAnim.pause();
                 break;
-            case animation.State.PAUSE:
+            case Anim.PlayState.PAUSE:
                 myAnim.resume();
                 break;
         }
@@ -50,51 +47,71 @@ function initUI() {
     //
     var slider = document.getElementById('slider');
     slider.oninput = function(event) {
-        myAnim.gotoAndStop(6000 * event.target.value/100);
+        myAnim.setTime(myAnim.duration * event.target.value/100);
     };
 }
 
-function onChangeAnim(event) {
+function onChangeAnim(player) {
     var slider = document.getElementById('slider');
-    slider.value = event.percent*100;
+    slider.value = player.position*100;
 }
 
 var myAnim;
 function testAnim(coin) {
-    var an = animation;
-    //
-    myAnim = an.spawn([
-        an.sequence([
-            an.rotateTo(Math.PI*8).duration(4000),
-            an.rotateTo(-Math.PI*4).duration(2000)
+    if (0) {
+        myAnim = Anim.sequence([
+            Anim.spawn([
+                Anim.moveAddX(100),
+                Anim.alphaTo(.1)
+            ]),
+            Anim.spawn([
+                Anim.moveAddX(-100),
+                Anim.alphaTo(1)
+            ])
+        ])
+            .setDuration(1000)
+            .setTarget(coin)
+            .addListener(Anim.Events.CHANGE, onChangeAnim)
+            .addListener(Anim.Events.END, function() {
+                coin.rotation = 0;
+                console.log('end');
+            });
+            // .play();
+        console.log('myAnim', myAnim);
+        return;
+    }
+    myAnim = Anim.spawn([
+        Anim.sequence([
+            Anim.rotateTo(Math.PI*8).setDuration(4000),
+            Anim.rotateTo(-Math.PI*4).setDuration(1000)
         ]),
-        an.sequence([
-            an.timeout(1000),
-            an.spawn([
-                an.moveToY(150).fluctuation(-100, 6, true),
-                an.moveToX(600),
-                an.scaleTo(1, 1)
-            ]).duration(2000),
-            an.spawn([
-                an.alphaTo(0),
-                an.anchorTo(0, 0)
-            ]).duration(500),
-            an.callFunc(checkPoint, null, [1, 'param 2']),
-            an.timeout(1000),
-            an.spawn([
-                an.alphaTo(1),
-                an.anchorTo(0.5, 0.5)
-            ]).duration(500),
-            an.spawn([
-                an.moveToX(200),
-                an.scaleTo(1, 1)
-            ]).duration(1000)
+        Anim.sequence([
+            //Anim.timeout(1000),
+            Anim.spawn([
+                Anim.moveToY(150),
+                Anim.moveToX(600),
+                Anim.scaleTo(1, 1)
+            ]).setDuration(2000),
+            Anim.spawn([
+                Anim.alphaTo(0),
+                Anim.anchorTo(0, 0)
+            ]).setDuration(500),
+            Anim.callFunc(checkPoint, null, [1, 'param 2']),
+            Anim.timeout(1000),
+            Anim.spawn([
+                Anim.alphaTo(1),
+                Anim.anchorTo(0.5, 0.5)
+            ]).setDuration(500),
+            Anim.spawn([
+                Anim.moveToX(200),
+                Anim.scaleTo(1, 1)
+            ]).setDuration(1000)
         ])
     ])
         .setTarget(coin)
-        .finish()
-        .loop()
-        .on('change', onChangeAnim);
+        .addListener(Anim.Events.CHANGE, onChangeAnim);
+        // .play();
+    // myAnim.setTime(1000);
     console.log(myAnim);
 }
 

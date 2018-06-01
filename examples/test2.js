@@ -32,12 +32,8 @@ function onAssetsLoaded(loader, res) {
         createCoin(i+1);
     }
     //
-    animation.util.ticker.registerStarter(function(active) {
-        if (active) {
-            app.ticker.add(animation.util.ticker.update, animation.util.ticker);
-        } else {
-            app.ticker.remove(animation.util.ticker.update, animation.util.ticker);
-        }
+    app.ticker.add(function() {
+        Anim.update();
     });
     //
     testAnim(coins);
@@ -45,8 +41,6 @@ function onAssetsLoaded(loader, res) {
 
 var myAnim;
 function testAnim(coins) {
-    var an = animation;
-    //
     var animsList = [];
     for (var i=0; i<5; i++) {
         var direction = Math.random() < 0.5 ? -1 : 1;
@@ -56,26 +50,24 @@ function testAnim(coins) {
         //
         var target = coins[i];
         //
-        var anim = an.sequence([
-                an.callFunc(function(target) {
+        var anim = Anim.sequence([
+                Anim.callFunc(function(target) {
                     target.alpha = 0;
                 }, null, [target]),
-                an.timeout(timeout),
-                an.spawn([
-                    an.rotateAdd(direction * Math.PI*2).duration(time*0.9),
-                    an.moveAddX(toX).duration(time*2).easeStrongOut(),
-                    an.moveToY(200).fluctuation(-200, 2, true),
-                    an.alphaTo(1)
-                ]).duration(time)
+                Anim.timeout(timeout),
+                Anim.spawn([
+                    Anim.rotateAdd(direction * Math.PI*2).setDuration(time*0.9),
+                    Anim.moveAddX(toX).setDuration(time*2).easeStrongOut(),
+                    Anim.moveToY(200),
+                    Anim.alphaTo(1)
+                ]).setDuration(time)
             ])
             .setTarget(target);
         //
         animsList.push(anim);
     }
     //
-    myAnim = an.spawn(animsList)
-        .finish()
-        .loop()
+    myAnim = Anim.spawn(animsList)
         .play();
     console.log(myAnim);
 }
