@@ -58,25 +58,20 @@ function onChangeAnim(player) {
 
 var myAnim;
 function testAnim(coin) {
-    if (0) {
-        myAnim = Anim.sequence([
+    if (1) {
+        myAnim = Anim.spawn([
             Anim.spawn([
-                Anim.moveAddX(100),
-                Anim.alphaTo(.1)
-            ]),
-            Anim.spawn([
-                Anim.moveAddX(-100),
-                Anim.alphaTo(1)
-            ])
+                Anim.rotateTo(Math.PI*2).setName('r1')
+            ]).setDuration(1000).loop().setName('c1'),
+            Anim.moveAddX(500).setDuration(4000)
         ])
-            .setDuration(1000)
             .setTarget(coin)
             .addListener(Anim.Events.CHANGE, onChangeAnim)
             .addListener(Anim.Events.END, function() {
                 coin.rotation = 0;
                 console.log('end');
-            });
-            // .play();
+            })
+            .play();
         console.log('myAnim', myAnim);
         return;
     }

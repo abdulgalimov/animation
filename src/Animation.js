@@ -187,6 +187,13 @@ var Anim;
         Player.prototype._update = function (deltaTime, rootElapsed) {
             if (this._parent) {
                 this._state.elapsedTime = rootElapsed - this._state.beginTime;
+                if (this._loop) {
+                    if (this._state.elapsedTime > this._state.duration) {
+                        var newValue = this._state.elapsedTime - Math.floor(this._state.elapsedTime / this._state.duration) * this._state.duration;
+                        this._replay();
+                        this._state.elapsedTime = newValue;
+                    }
+                }
             }
             if (this._state.elapsedTime >= 0 && this._state.elapsedTime < this._state.duration) {
                 if (!this._isProcess) {
@@ -202,6 +209,9 @@ var Anim;
             if (this._state.elapsedTime > this._state.duration)
                 this._state.elapsedTime = this._state.duration;
             var p = this._state.duration ? this._state.elapsedTime / this._state.duration : 0;
+            if (this._name === 'c1' || this._name === 'r1') {
+                console.log('pp', p, this._state.elapsedTime, this._name);
+            }
             if (p !== this._state.position) {
                 this._state.position = p;
                 this._apply();
@@ -250,6 +260,10 @@ var Anim;
         };
         Player.prototype.setDuration = function (duration) {
             this._duration = duration;
+            return this;
+        };
+        Player.prototype.loop = function () {
+            this._loop = true;
             return this;
         };
         Player.prototype.setTime = function (time) {

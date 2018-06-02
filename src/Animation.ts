@@ -117,6 +117,7 @@ module Anim {
         private _playState:PlayState = PlayState.STOP;
         private _listeners:ListenersType;
         private _isProcess:boolean;
+        private _loop:Boolean;
         constructor() {
             this._state = new State();
         }
@@ -166,6 +167,13 @@ module Anim {
         _update(deltaTime:number, rootElapsed:number):void {
             if (this._parent) {
                 this._state.elapsedTime = rootElapsed - this._state.beginTime;
+                if (this._loop) {
+                    if (this._state.elapsedTime > this._state.duration) {
+                        let newValue:number = this._state.elapsedTime - Math.floor(this._state.elapsedTime/this._state.duration) * this._state.duration;
+                        this._replay();
+                        this._state.elapsedTime = newValue;
+                    }
+                }
             }
             if (this._state.elapsedTime >= 0 && this._state.elapsedTime < this._state.duration) {
                 if (!this._isProcess) {
@@ -179,6 +187,9 @@ module Anim {
             if (this._state.elapsedTime < 0) this._state.elapsedTime = 0;
             if (this._state.elapsedTime > this._state.duration) this._state.elapsedTime = this._state.duration;
             const p = this._state.duration ? this._state.elapsedTime/this._state.duration : 0;
+            if (this._name === 'c1' || this._name === 'r1') {
+                console.log('pp', p, this._state.elapsedTime, this._name);
+            }
             if (p !== this._state.position) {
                 this._state.position = p;
                 this._apply();
@@ -230,6 +241,11 @@ module Anim {
 
         public setDuration(duration:number):Player {
             this._duration = duration;
+            return this;
+        }
+
+        public loop():Player {
+            this._loop = true;
             return this;
         }
 
