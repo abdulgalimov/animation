@@ -366,9 +366,6 @@ var Anim;
             _super.prototype._replay.call(this);
             this.activated = false;
         };
-        Static.prototype._apply = function () {
-            _super.prototype._apply.call(this);
-        };
         Static.prototype._update = function (parentTime) {
             _super.prototype._update.call(this, parentTime);
             //

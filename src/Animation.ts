@@ -353,10 +353,6 @@ module Anim {
             this.activated = false;
         }
 
-        _apply():void {
-            super._apply();
-        }
-
         _update(parentTime:number):void {
             super._update(parentTime);
             //
@@ -616,16 +612,6 @@ module Anim {
                 this.items[i]._update(this._state.elapsedTime);
             }
         }
-
-        /*/
-        _update(parentTime:number):void {
-            super._update(parentTime);
-            //
-            for (let i=0; i<this.items.length; i++) {
-                this.items[i]._update(this._state.elapsedTime);
-            }
-        }
-        */
     }
 
     class Spawn extends Group {
