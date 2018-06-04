@@ -1,4 +1,4 @@
-# animation
+# Example
 ```js
 Anim.spawn([
     Anim.rotateTo(Math.PI*2).setDuration(1000).loop(),
@@ -23,3 +23,4 @@ Anim.spawn([
     .setTarget(coin)
     .play();
 ```
+[Demo](https://youtu.be/-QamMdf68xE)
