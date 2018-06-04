@@ -14,11 +14,11 @@ class App extends PIXI.Application{
     private coin:PIXI.Sprite;
     onAssetsLoaded(loader:PIXI.loaders.Loader, res:any):void {
         let table = new PIXI.Sprite(res.table.texture);
-        //app.stage.addChild(table);
+        app.stage.addChild(table);
         //
         let coin:PIXI.Sprite = new PIXI.Sprite(res.coin.texture);
         this.coin = coin;
-        coin.x = 200;
+        coin.x = 100;
         coin.y = 150;
         coin.anchor.set(0.5);
         this.stage.addChild(coin);
@@ -92,10 +92,10 @@ class App extends PIXI.Application{
                 Anim.warn('pong'),
                 Anim.event('loop_step', true, [1, 'dd'])
             ]).loop(),
-            Anim.moveAddX(500).setDuration(8000)
+            Anim.moveAddX(600).setDuration(6000)
         ]);
         //
-        this.myAnim.setTarget(coin).play();
+        this.myAnim.setTarget(coin);
         console.log('myAnim', this.myAnim);
         return;
     }
