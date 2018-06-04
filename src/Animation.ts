@@ -99,7 +99,7 @@ module Anim {
         END = 'end'
     }
     type EventNameType = Events.BEGIN|Events.CHANGE|Events.LOOP|Events.END;
-    type ListenerCallback = (player:Player)=>void;
+    type ListenerCallback = (event:EventData)=>void;
     type ListenersType = {
         [key:string]: {
             func: ListenerCallback,
@@ -341,7 +341,7 @@ module Anim {
             }
         }
 
-        public addListener(name:string, func:(player:Player)=>void, context:any=null):Player {
+        public addListener(name:string, func:(event:EventData)=>void, context:any=null):Player {
             if (!this._listeners) this._listeners = {};
             this._listeners[name] = {
                 func: func,
@@ -397,7 +397,7 @@ module Anim {
         }
     }
 
-    class EventData {
+    export class EventData {
         constructor(
             public readonly player:Player,
             public readonly eventName:string,

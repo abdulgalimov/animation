@@ -67,9 +67,9 @@ class App extends PIXI.Application{
         this.myAnim.setTime(this.myAnim.duration * event.target['value']/100);
     }
 
-    onChangeAnim(player:Anim.Player):void {
+    onChangeAnim(event:Anim.EventData):void {
         let slider = document.getElementById('slider');
-        slider['value'] = player.position*100;
+        slider['value'] = event.player.position*100;
     }
 
     myAnim:Anim.Player;
