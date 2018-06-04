@@ -12,7 +12,7 @@ Anim.spawn([
             Anim.moveAddY(70),
             Anim.tintTo(0xffffff),
         ]).setDuration(300),
-        Anim.warn('pong'), , // console.warn
+        Anim.warn('pong'), // console.warn
         Anim.event('loop_step', true, [1, 'dd']) // drop custom event
     ]).loop(),
     Anim.moveAddX(600).setDuration(6000)
