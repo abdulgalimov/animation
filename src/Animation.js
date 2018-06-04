@@ -161,7 +161,7 @@ var Anim;
         };
         Player.prototype._dropEvent = function (event) {
             if (this._listeners && this._listeners[event]) {
-                this._listeners[event](this);
+                this._listeners[event].func.call(this._listeners[event].context, this);
             }
         };
         Player.prototype._setParent = function (parent) {
@@ -331,10 +331,20 @@ var Anim;
                     break;
             }
         };
-        Player.prototype.addListener = function (name, func) {
+        Player.prototype.addListener = function (name, func, context) {
+            if (context === void 0) { context = null; }
             if (!this._listeners)
                 this._listeners = {};
-            this._listeners[name] = func;
+            this._listeners[name] = {
+                func: func,
+                context: context
+            };
+            return this;
+        };
+        Player.prototype.removeListener = function (name, func) {
+            if (!this._listeners)
+                return this;
+            delete this._listeners[name];
             return this;
         };
         return Player;

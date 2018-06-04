@@ -103,7 +103,10 @@ module Anim {
     type EventNameType = Events.BEGIN|Events.CHANGE|Events.END;
     type ListenerCallback = (player:Player)=>void;
     type ListenersType = {
-        [key:string]:ListenerCallback;
+        [key:string]: {
+            func: ListenerCallback,
+            context: any
+        };
     };
 
     export class Player {
@@ -139,7 +142,7 @@ module Anim {
 
         private _dropEvent(event:EventNameType):void {
             if (this._listeners && this._listeners[event]) {
-                this._listeners[event](this);
+                this._listeners[event].func.call(this._listeners[event].context, this);
             }
         }
 
@@ -312,9 +315,18 @@ module Anim {
             }
         }
 
-        public addListener(name:Events, func:(player:Player)=>void):Player {
+        public addListener(name:Events, func:(player:Player)=>void, context:any=null):Player {
             if (!this._listeners) this._listeners = {};
-            this._listeners[name] = func;
+            this._listeners[name] = {
+                func: func,
+                context: context
+            };
+            return this;
+        }
+
+        public removeListener(name:Events, func:(player:Player)=>void):Player {
+            if (!this._listeners) return this;
+            delete this._listeners[name];
             return this;
         }
     }
