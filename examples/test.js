@@ -65,7 +65,8 @@ function testAnim(coin) {
                 Anim.log('ping'),
                 Anim.moveAddY(-70).easeStrongOut().setDuration(700),
                 Anim.moveAddY(70).easeRegular().setDuration(300),
-                Anim.warn('pong')
+                Anim.warn('pong'),
+                Anim.event('loop_step', true, [1, 'dd'])
             ]).loop(),
             Anim.moveAddX(500).setDuration(8000)
         ])
@@ -77,6 +78,9 @@ function testAnim(coin) {
             })
             .play();
         console.log('myAnim', myAnim);
+        myAnim.addListener('loop_step', function(eventData) {
+            console.log('testEvent', eventData);
+        });
         return;
     }
     myAnim = Anim.spawn([

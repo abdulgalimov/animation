@@ -87,6 +87,7 @@ module Anim {
         STOP = 1,
         PLAY,
         PAUSE,
+        RESUME,
         FINISH
     }
 
@@ -94,9 +95,10 @@ module Anim {
     export enum Events {
         BEGIN = 'begin',
         CHANGE = 'change',
+        LOOP = 'loop',
         END = 'end'
     }
-    type EventNameType = Events.BEGIN|Events.CHANGE|Events.END;
+    type EventNameType = Events.BEGIN|Events.CHANGE|Events.LOOP|Events.END;
     type ListenerCallback = (player:Player)=>void;
     type ListenersType = {
         [key:string]: {
@@ -105,9 +107,11 @@ module Anim {
         };
     };
 
+
+
     export class Player {
         private _name:string;
-        protected _parent:Player = null;
+        public _parent:Player = null;
         _duration:number = 0;
         protected _target:any;
         public _state:State;
@@ -132,14 +136,23 @@ module Anim {
         get duration():number {return this._state.duration;}
         get isProcess():boolean {return this._isProcess;}
         get playState():PlayState {return this._playState;}
+        get loopCount():number {return this._loopCount;}
 
         private _setPlayState(state:PlayState) {
             this._playState = state;
         }
 
-        private _dropEvent(event:EventNameType):void {
-            if (this._listeners && this._listeners[event]) {
-                this._listeners[event].func.call(this._listeners[event].context, this);
+        private _dropEvent(eventName:EventNameType):void {
+            const eventData:EventData = new EventData(this, eventName);
+            this._dropEventData(eventData);
+        }
+
+        public _dropEventData(eventData:EventData):void {
+            if (this._listeners && this._listeners[eventData.eventName]) {
+                this._listeners[eventData.eventName].func.call(
+                    this._listeners[eventData.eventName].context,
+                    eventData
+                );
             }
         }
 
@@ -186,6 +199,7 @@ module Anim {
                         this._state.elapsedTime = this._state.duration;
                         this._state.position = 1;
                         this._apply();
+                        this._dropEvent(Events.LOOP);
                         this._replay();
                     }
                     //
@@ -319,7 +333,7 @@ module Anim {
             }
         }
 
-        public addListener(name:Events, func:(player:Player)=>void, context:any=null):Player {
+        public addListener(name:string, func:(player:Player)=>void, context:any=null):Player {
             if (!this._listeners) this._listeners = {};
             this._listeners[name] = {
                 func: func,
@@ -328,7 +342,7 @@ module Anim {
             return this;
         }
 
-        public removeListener(name:Events, func:(player:Player)=>void):Player {
+        public removeListener(name:Events, func:(event:EventData)=>void):Player {
             if (!this._listeners) return this;
             delete this._listeners[name];
             return this;
@@ -352,7 +366,7 @@ module Anim {
             super._replay();
             this.activated = false;
         }
-
+        
         _update(parentTime:number):void {
             super._update(parentTime);
             //
@@ -370,9 +384,56 @@ module Anim {
         constructor(private callback:Function, private context:any, private params:Array<any>) {
             super();
         }
-
         _activate() {
             this.callback.apply(this.context, this.params||[]);
+        }
+    }
+
+    class EventData {
+        constructor(
+            public readonly player:Player,
+            public readonly eventName:string,
+            public readonly params:any[]=[])
+        {
+
+        }
+    }
+    class  DropEvent extends Static {
+        constructor(private eventName:string, private bubbles:boolean, private params:any[]) {
+            super();
+        }
+        _activate() {
+            const eventData:EventData = new EventData(this, this.eventName, this.params);
+            this._dropEventData(eventData);
+            if (this.bubbles) {
+                let parent:Player = this._parent;
+                while (parent) {
+                    parent._dropEventData(eventData);
+                    parent = parent._parent;
+                }
+            }
+        }
+    }
+
+    class PlayerSetState extends Static {
+        constructor(private readonly player:Player, private readonly setPlayState:PlayState) {
+            super();
+        }
+        _activate() {
+            switch (this.setPlayState) {
+                case PlayState.PLAY:
+                    this.player.play();
+                    break;
+                case PlayState.PAUSE:
+                    this.player.pause();
+                    break;
+                case PlayState.RESUME:
+                    this.player.resume();
+                    break;
+                case PlayState.STOP:
+                    this.player.stop();
+                    break;
+            }
         }
     }
 
@@ -380,7 +441,6 @@ module Anim {
         constructor(private value:boolean) {
             super();
         }
-
         _activate() {
             this._state.target.visible = this.value;
         }
@@ -389,7 +449,6 @@ module Anim {
         constructor() {
             super();
         }
-
         _activate() {
             if (this._state.target.parent) {
                 this._state.target.parent.removeChild(this._state.target);
@@ -400,7 +459,6 @@ module Anim {
         constructor(private parentCont:any) {
             super();
         }
-
         _activate() {
             this.parentCont.addChild(this._state.target);
         }
@@ -866,6 +924,22 @@ module Anim {
     }
     export function error(...args: any[]):CallFunc {
         return new CallFunc(console.error, console, args);
+    }
+    export function event(name:string, bubbles:boolean=false, ...args: any[]):DropEvent {
+        return new DropEvent(name, bubbles, args);
+    }
+
+    export function animPlay(player:Player):PlayerSetState {
+        return new PlayerSetState(player, PlayState.PLAY);
+    }
+    export function animPause(player:Player):PlayerSetState {
+        return new PlayerSetState(player, PlayState.PAUSE);
+    }
+    export function animResume(player:Player):PlayerSetState {
+        return new PlayerSetState(player, PlayState.RESUME);
+    }
+    export function animStop(player:Player):PlayerSetState {
+        return new PlayerSetState(player, PlayState.STOP);
     }
 
     export function visible(value:boolean):Visible {

@@ -97,12 +97,14 @@ var Anim;
         PlayState[PlayState["STOP"] = 1] = "STOP";
         PlayState[PlayState["PLAY"] = 2] = "PLAY";
         PlayState[PlayState["PAUSE"] = 3] = "PAUSE";
-        PlayState[PlayState["FINISH"] = 4] = "FINISH";
+        PlayState[PlayState["RESUME"] = 4] = "RESUME";
+        PlayState[PlayState["FINISH"] = 5] = "FINISH";
     })(PlayState = Anim.PlayState || (Anim.PlayState = {}));
     var Events;
     (function (Events) {
         Events["BEGIN"] = "begin";
         Events["CHANGE"] = "change";
+        Events["LOOP"] = "loop";
         Events["END"] = "end";
     })(Events = Anim.Events || (Anim.Events = {}));
     var Player = /** @class */ (function () {
@@ -149,12 +151,21 @@ var Anim;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Player.prototype, "loopCount", {
+            get: function () { return this._loopCount; },
+            enumerable: true,
+            configurable: true
+        });
         Player.prototype._setPlayState = function (state) {
             this._playState = state;
         };
-        Player.prototype._dropEvent = function (event) {
-            if (this._listeners && this._listeners[event]) {
-                this._listeners[event].func.call(this._listeners[event].context, this);
+        Player.prototype._dropEvent = function (eventName) {
+            var eventData = new EventData(this, eventName);
+            this._dropEventData(eventData);
+        };
+        Player.prototype._dropEventData = function (eventData) {
+            if (this._listeners && this._listeners[eventData.eventName]) {
+                this._listeners[eventData.eventName].func.call(this._listeners[eventData.eventName].context, eventData);
             }
         };
         Player.prototype._setParent = function (parent) {
@@ -199,6 +210,7 @@ var Anim;
                         this._state.elapsedTime = this._state.duration;
                         this._state.position = 1;
                         this._apply();
+                        this._dropEvent(Events.LOOP);
                         this._replay();
                     }
                     //
@@ -390,6 +402,63 @@ var Anim;
             this.callback.apply(this.context, this.params || []);
         };
         return CallFunc;
+    }(Static));
+    var EventData = /** @class */ (function () {
+        function EventData(player, eventName, params) {
+            if (params === void 0) { params = []; }
+            this.player = player;
+            this.eventName = eventName;
+            this.params = params;
+        }
+        return EventData;
+    }());
+    var DropEvent = /** @class */ (function (_super) {
+        __extends(DropEvent, _super);
+        function DropEvent(eventName, bubbles, params) {
+            var _this = _super.call(this) || this;
+            _this.eventName = eventName;
+            _this.bubbles = bubbles;
+            _this.params = params;
+            return _this;
+        }
+        DropEvent.prototype._activate = function () {
+            var eventData = new EventData(this, this.eventName, this.params);
+            this._dropEventData(eventData);
+            if (this.bubbles) {
+                var parent_1 = this._parent;
+                while (parent_1) {
+                    parent_1._dropEventData(eventData);
+                    parent_1 = parent_1._parent;
+                }
+            }
+        };
+        return DropEvent;
+    }(Static));
+    var PlayerSetState = /** @class */ (function (_super) {
+        __extends(PlayerSetState, _super);
+        function PlayerSetState(player, setPlayState) {
+            var _this = _super.call(this) || this;
+            _this.player = player;
+            _this.setPlayState = setPlayState;
+            return _this;
+        }
+        PlayerSetState.prototype._activate = function () {
+            switch (this.setPlayState) {
+                case PlayState.PLAY:
+                    this.player.play();
+                    break;
+                case PlayState.PAUSE:
+                    this.player.pause();
+                    break;
+                case PlayState.RESUME:
+                    this.player.resume();
+                    break;
+                case PlayState.STOP:
+                    this.player.stop();
+                    break;
+            }
+        };
+        return PlayerSetState;
     }(Static));
     var Visible = /** @class */ (function (_super) {
         __extends(Visible, _super);
@@ -956,6 +1025,31 @@ var Anim;
         return new CallFunc(console.error, console, args);
     }
     Anim.error = error;
+    function event(name, bubbles) {
+        if (bubbles === void 0) { bubbles = false; }
+        var args = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            args[_i - 2] = arguments[_i];
+        }
+        return new DropEvent(name, bubbles, args);
+    }
+    Anim.event = event;
+    function animPlay(player) {
+        return new PlayerSetState(player, PlayState.PLAY);
+    }
+    Anim.animPlay = animPlay;
+    function animPause(player) {
+        return new PlayerSetState(player, PlayState.PAUSE);
+    }
+    Anim.animPause = animPause;
+    function animResume(player) {
+        return new PlayerSetState(player, PlayState.RESUME);
+    }
+    Anim.animResume = animResume;
+    function animStop(player) {
+        return new PlayerSetState(player, PlayState.STOP);
+    }
+    Anim.animStop = animStop;
     function visible(value) {
         return new Visible(value);
     }
