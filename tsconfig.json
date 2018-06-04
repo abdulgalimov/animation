@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "rootDir": "./",
+    "esModuleInterop": true,
+    "inlineSourceMap": true,
+    "removeComments": true,
+    "allowJs": false,
+
+    "lib": [ "es2015", "dom" ]
+  }
+}

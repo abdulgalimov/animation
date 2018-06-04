@@ -126,18 +126,6 @@ module Anim {
             this._state = new State();
         }
 
-        get target():any {
-            let self:Player = this;
-            while (!self._target && self._parent) self = self._parent;
-            return self._target;
-        }
-        get position():number {return this._state.position;}
-        get elapsedTime():number {return this._state.elapsedTime;}
-        get duration():number {return this._state.duration;}
-        get isProcess():boolean {return this._isProcess;}
-        get playState():PlayState {return this._playState;}
-        get loopCount():number {return this._loopCount;}
-
         private _setPlayState(state:PlayState) {
             this._playState = state;
         }
@@ -147,7 +135,7 @@ module Anim {
             this._dropEventData(eventData);
         }
 
-        public _dropEventData(eventData:EventData):void {
+        _dropEventData(eventData:EventData):void {
             if (this._listeners && this._listeners[eventData.eventName]) {
                 this._listeners[eventData.eventName].func.call(
                     this._listeners[eventData.eventName].context,
@@ -248,8 +236,28 @@ module Anim {
             this._state.position = 0;
         }
 
-        get name():string {return this._name;}
-        setName(name:string=null):Player {
+        private _startCalc():void {
+            const props:PropsContainer = new PropsContainer();
+            props.clear();
+            this._calculate(props);
+        }
+
+        /** public API **************************************************** */
+
+        get target():any {
+            let self:Player = this;
+            while (!self._target && self._parent) self = self._parent;
+            return self._target;
+        }
+        get position():number {return this._state.position;}
+        get elapsedTime():number {return this._state.elapsedTime;}
+        get duration():number {return this._state.duration;}
+        get isProcess():boolean {return this._isProcess;}
+        get playState():PlayState {return this._playState;}
+        get loopCount():number {return this._loopCount;}
+
+        public get name():string {return this._name;}
+        public setName(name:string=null):Player {
             this._name = name;
             return this;
         }
@@ -270,7 +278,6 @@ module Anim {
         }
 
         public setTime(time:number):void {
-            //if (!this._target) dropError('Target undefined');
             if (this._parent) dropError('Method play available in root anim only');
             //
             if (this._playState !== PlayState.PLAY) {
@@ -281,13 +288,7 @@ module Anim {
                 this._update(this._state.elapsedTime);
             }
         }
-        private _startCalc():void {
-            const props:PropsContainer = new PropsContainer();
-            props.clear();
-            this._calculate(props);
-        }
         public play():Player {
-            // if (!this._target) dropError('Target undefined');
             if (this._parent) dropError('Method play available in root anim only');
             //
             if (!this._calculated) {
@@ -306,23 +307,30 @@ module Anim {
         }
 
         public stop():Player {
-            if (this._parent) dropError('Method play available in root anim only');
+            if (this._parent) dropError('Method stop available in root anim only');
+            //
             global.del(this);
             this._setPlayState(PlayState.STOP);
             return this;
         }
 
         public pause():void {
+            if (this._parent) dropError('Method pause available in root anim only');
+            //
             if (this._playState === PlayState.PLAY) {
                 this._setPlayState(PlayState.PAUSE);
             }
         }
         public resume():void {
+            if (this._parent) dropError('Method resume available in root anim only');
+            //
             if (this._playState === PlayState.PAUSE) {
                 this._setPlayState(PlayState.PLAY);
             }
         }
         public togglePause():void {
+            if (this._parent) dropError('Method resume available in root anim only');
+            //
             switch (this._playState) {
                 case PlayState.PAUSE:
                     this._setPlayState(PlayState.PLAY);
@@ -366,7 +374,7 @@ module Anim {
             super._replay();
             this.activated = false;
         }
-        
+
         _update(parentTime:number):void {
             super._update(parentTime);
             //
@@ -377,7 +385,7 @@ module Anim {
 
         }
 
-        _activate() {}
+        _activate() {/** override me */}
     }
 
     class CallFunc extends Static {
@@ -398,7 +406,7 @@ module Anim {
 
         }
     }
-    class  DropEvent extends Static {
+    class DropEvent extends Static {
         constructor(private eventName:string, private bubbles:boolean, private params:any[]) {
             super();
         }
@@ -483,41 +491,42 @@ module Anim {
             this.setProps(props);
         }
 
-        easeRegular():Property {this._ease = regular;return this;}
         easeCustom(func:EaseFuncType):Property {this._ease = func;return this;}
-        easeStrongOut():Property {this._ease = strongOut;return this;}
-        easeStrongIn():Property {this._ease = strongIn;return this;}
-        easeStrongInOut():Property {this._ease = strongInOut;return this;}
-        easeBackOut():Property {this._ease = backOut;return this;}
-        easeBackIn():Property {this._ease = backIn;return this;}
-        easeBackInOut():Property {this._ease = backInOut;return this;}
-        easeElasticIn():Property {this._ease = elasticIn;return this;}
-        easeElasticOut():Property {this._ease = elasticOut;return this;}
-        easeElasticInOut():Property {this._ease = elasticInOut;return this;}
-        easeCircIn():Property {this._ease = circIn;return this;}
-        easeCircOut():Property {this._ease = circOut;return this;}
-        easeCircInOut():Property {this._ease = circInOut;return this;}
-        easeCubicIn():Property {this._ease = cubicIn;return this;}
-        easeCubicOut():Property {this._ease = cubicOut;return this;}
-        easeCubicInOut():Property {this._ease = cubicInOut;return this;}
-        easeExpIn():Property {this._ease = expIn;return this;}
-        easeExpOut():Property {this._ease = expOut;return this;}
-        easeExpInOut():Property {this._ease = expInOut;return this;}
-        easeQuadIn():Property {this._ease = quadIn;return this;}
-        easeQuadOut():Property {this._ease = quadOut;return this;}
-        easeQuadInOut():Property {this._ease = quadInOut;return this;}
-        easeQuartIn():Property {this._ease = quartIn;return this;}
-        easeQuartOut():Property {this._ease = quartOut;return this;}
-        easeQuartInOut():Property {this._ease = quartInOut;return this;}
-        easeQuintIn():Property {this._ease = quintIn;return this;}
-        easeQuintOut():Property {this._ease = quintOut;return this;}
-        easeQuintInOut():Property {this._ease = quintInOut;return this;}
-        easeSinIn():Property {this._ease = sinIn;return this;}
-        easeSinOut():Property {this._ease = sinOut;return this;}
-        easeSinInOut():Property {this._ease = sinInOut;return this;}
-        easeBounceIn():Property {this._ease = bounceIn;return this;}
-        easeBounceOut():Property {this._ease = bounceOut;return this;}
-        easeBounceInOut():Property {this._ease = bounceInOut;return this;}
+
+        easeRegular():Property {this._ease          = regular;return this;}
+        easeStrongOut():Property {this._ease        = strongOut;return this;}
+        easeStrongIn():Property {this._ease         = strongIn;return this;}
+        easeStrongInOut():Property {this._ease      = strongInOut;return this;}
+        easeBackOut():Property {this._ease          = backOut;return this;}
+        easeBackIn():Property {this._ease           = backIn;return this;}
+        easeBackInOut():Property {this._ease        = backInOut;return this;}
+        easeElasticIn():Property {this._ease        = elasticIn;return this;}
+        easeElasticOut():Property {this._ease       = elasticOut;return this;}
+        easeElasticInOut():Property {this._ease     = elasticInOut;return this;}
+        easeCircIn():Property {this._ease           = circIn;return this;}
+        easeCircOut():Property {this._ease          = circOut;return this;}
+        easeCircInOut():Property {this._ease        = circInOut;return this;}
+        easeCubicIn():Property {this._ease          = cubicIn;return this;}
+        easeCubicOut():Property {this._ease         = cubicOut;return this;}
+        easeCubicInOut():Property {this._ease       = cubicInOut;return this;}
+        easeExpIn():Property {this._ease            = expIn;return this;}
+        easeExpOut():Property {this._ease           = expOut;return this;}
+        easeExpInOut():Property {this._ease         = expInOut;return this;}
+        easeQuadIn():Property {this._ease           = quadIn;return this;}
+        easeQuadOut():Property {this._ease          = quadOut;return this;}
+        easeQuadInOut():Property {this._ease        = quadInOut;return this;}
+        easeQuartIn():Property {this._ease          = quartIn;return this;}
+        easeQuartOut():Property {this._ease         = quartOut;return this;}
+        easeQuartInOut():Property {this._ease       = quartInOut;return this;}
+        easeQuintIn():Property {this._ease          = quintIn;return this;}
+        easeQuintOut():Property {this._ease         = quintOut;return this;}
+        easeQuintInOut():Property {this._ease       = quintInOut;return this;}
+        easeSinIn():Property {this._ease            = sinIn;return this;}
+        easeSinOut():Property {this._ease           = sinOut;return this;}
+        easeSinInOut():Property {this._ease         = sinInOut;return this;}
+        easeBounceIn():Property {this._ease         = bounceIn;return this;}
+        easeBounceOut():Property {this._ease        = bounceOut;return this;}
+        easeBounceInOut():Property {this._ease      = bounceInOut;return this;}
 
         setProps(props:PropsType):Property {
             this._props = props;
@@ -625,13 +634,13 @@ module Anim {
         private readonly toRgb:Rgb;
         private readonly interpolateRgb:Rgb;
         public color:number;
-        constructor(propName:string, props:PropsType=null) {
-            super(props);
+        constructor(propName:string, withAlpha:boolean=false) {
+            super({});
             this._flags |= Flags.COLOR;
             this.propName = propName;
-            this.fromRgb = new Rgb();
-            this.toRgb = new Rgb();
-            this.interpolateRgb = new Rgb();
+            this.fromRgb = new Rgb(0, withAlpha);
+            this.toRgb = new Rgb(0, withAlpha);
+            this.interpolateRgb = new Rgb(0, withAlpha);
         }
 
         _calculate(props:PropsContainer):void {
@@ -897,8 +906,8 @@ module Anim {
     export function fadeOut():Property {return alphaTo(1);}
 
     // color
-    export function colorTo(propName:string, color:number):Color {
-        const colorAnim:Color = new Color(propName);
+    export function colorTo(propName:string, color:number, withAlpha:boolean=false):Color {
+        const colorAnim:Color = new Color(propName, withAlpha);
         colorAnim.setProps({tint: color});
         return colorAnim;
     }
@@ -1158,13 +1167,13 @@ module Anim {
                 if (this.withAlpha) {
                     this.alpha = (color >> 24) & 0xff;
                 } else {
-                    this.alpha = 255;
+                    this.alpha = 0;
                 }
                 this.red = (color >> 16) & 0xff;
                 this.green = (color >> 8) & 0xff;
                 this.blue = color & 0xff;
             } else {
-                this.alpha = this.withAlpha ? 0 : 255;
+                this.alpha = this.withAlpha ? 255 : 0;
                 this.red = 0;
                 this.green = 0;
                 this.blue = 0;
@@ -1180,10 +1189,10 @@ module Anim {
         }
 
         static interpolation(from, to, percent, rgb:Rgb=null):Rgb {
-            const alpha = from.alpha + (to.alpha - from.alpha) * percent;
-            const red = from.red + (to.red - from.red) * percent;
-            const green = from.green + (to.green - from.green) * percent;
-            const blue = from.blue + (to.blue - from.blue) * percent;
+            const alpha = Math.round(from.alpha + (to.alpha - from.alpha) * percent);
+            const red = Math.round(from.red + (to.red - from.red) * percent);
+            const green = Math.round(from.green + (to.green - from.green) * percent);
+            const blue = Math.round(from.blue + (to.blue - from.blue) * percent);
             rgb = rgb || new Rgb();
             rgb.updateRgb(red, green, blue, alpha);
             return rgb;

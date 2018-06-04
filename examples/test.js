@@ -64,7 +64,7 @@ function testAnim(coin) {
             Anim.sequence([
                 Anim.log('ping'),
                 Anim.moveAddY(-70).easeStrongOut().setDuration(700),
-                Anim.moveAddY(70).easeRegular().setDuration(300),
+                Anim.moveAddY(70).setDuration(300),
                 Anim.warn('pong'),
                 Anim.event('loop_step', true, [1, 'dd'])
             ]).loop(),
