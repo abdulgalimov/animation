@@ -36,10 +36,6 @@ module Anim {
         global.update.apply(global, arguments);
     }
 
-    function log(...args):void {
-        console.log.apply(console, args);
-    }
-
     function dropError(message) {
         throw new Error(`AnimError: ${message}`);
     }
@@ -121,6 +117,7 @@ module Anim {
         private _listeners:ListenersType;
         private _isProcess:boolean;
         private _loop:Boolean;
+        private _loopCount:number;
         constructor() {
             this._state = new State();
         }
@@ -156,7 +153,7 @@ module Anim {
                     break;
                 case PlayState.PLAY:
                     this._state.elapsedTime = global.time - this._state.rootStartTime - this._pausedTime;
-                    this._update(deltaTime, this._state.elapsedTime);
+                    this._update(this._state.elapsedTime);
                     if (this._state.elapsedTime === this._state.duration) {
                         this._setPlayState(PlayState.FINISH);
                         global.del(this);
@@ -167,16 +164,9 @@ module Anim {
                     break;
             }
         }
-        _update(deltaTime:number, rootElapsed:number):void {
+        _update(parentTime:number):void {
             if (this._parent) {
-                this._state.elapsedTime = rootElapsed - this._state.beginTime;
-                if (this._loop) {
-                    if (this._state.elapsedTime > this._state.duration) {
-                        let newValue:number = this._state.elapsedTime - Math.floor(this._state.elapsedTime/this._state.duration) * this._state.duration;
-                        this._replay();
-                        this._state.elapsedTime = newValue;
-                    }
-                }
+                this._state.elapsedTime = parentTime - this._state.beginTime;
             }
             if (this._state.elapsedTime >= 0 && this._state.elapsedTime < this._state.duration) {
                 if (!this._isProcess) {
@@ -187,12 +177,25 @@ module Anim {
                 }
             }
             //
+            if (this._loop) {
+                if (this._state.elapsedTime > this._state.duration) {
+                    let loopCount:number = Math.floor(this._state.elapsedTime/this._state.duration);
+                    let newValue:number = this._state.elapsedTime - loopCount * this._state.duration;
+                    if (loopCount !== this._loopCount) {
+                        this._loopCount = loopCount;
+                        this._state.elapsedTime = this._state.duration;
+                        this._state.position = 1;
+                        this._apply();
+                        this._replay();
+                    }
+                    //
+                    this._state.elapsedTime = newValue;
+                }
+            }
+            //
             if (this._state.elapsedTime < 0) this._state.elapsedTime = 0;
             if (this._state.elapsedTime > this._state.duration) this._state.elapsedTime = this._state.duration;
             const p = this._state.duration ? this._state.elapsedTime/this._state.duration : 0;
-            if (this._name === 'c1' || this._name === 'r1') {
-                console.log('pp', p, this._state.elapsedTime, this._name);
-            }
             if (p !== this._state.position) {
                 this._state.position = p;
                 this._apply();
@@ -261,7 +264,7 @@ module Anim {
                 //
                 this._pausedTime = 0;
                 this._state.elapsedTime = time;
-                this._update(0, this._state.elapsedTime);
+                this._update(this._state.elapsedTime);
             }
         }
         private _startCalc():void {
@@ -280,6 +283,7 @@ module Anim {
             }
             //
             global.add(this);
+            this._loopCount = 0;
             this._pausedTime = 0;
             this._state.rootStartTime = global.time;
             this._setPlayState(PlayState.PLAY);
@@ -344,12 +348,23 @@ module Anim {
             this.activated = false;
         }
 
-        _update(deltaTime:number, rootElapsed:number):void {
-            super._update(deltaTime, rootElapsed);
-             if (!this.activated && rootElapsed >= this._state.beginTime) {
-                 this.activated = true;
-                 this._activate();
-             }
+        _replay():void {
+            super._replay();
+            this.activated = false;
+        }
+
+        _apply():void {
+            super._apply();
+        }
+
+        _update(parentTime:number):void {
+            super._update(parentTime);
+            //
+            if (!this.activated && parentTime >= this._state.beginTime) {
+                this.activated = true;
+                this._activate();
+            }
+
         }
 
         _activate() {}
@@ -594,12 +609,23 @@ module Anim {
             }
         }
 
-        _update(deltaTime:number, rootElapsed:number):void {
+        _apply():void {
+            super._apply();
+            //
             for (let i=0; i<this.items.length; i++) {
-                this.items[i]._update(deltaTime, rootElapsed);
+                this.items[i]._update(this._state.elapsedTime);
             }
-            super._update(deltaTime, rootElapsed);
         }
+
+        /*/
+        _update(parentTime:number):void {
+            super._update(parentTime);
+            //
+            for (let i=0; i<this.items.length; i++) {
+                this.items[i]._update(this._state.elapsedTime);
+            }
+        }
+        */
     }
 
     class Spawn extends Group {
@@ -619,7 +645,7 @@ module Anim {
                 }
                 item._calculate(props);
                 maxDuration = Math.max(maxDuration, item._state.duration);
-                if (!(item._flags & Flags.STATIC)) item._state.beginTime = this._state.beginTime;
+                if (!(item._flags & Flags.STATIC)) item._state.beginTime = 0;
             }
             if (!this._duration) this._state.duration = maxDuration;
         }
@@ -649,7 +675,7 @@ module Anim {
                 return;
             }
             let unsetDuration:number = unsetCount ? (this._duration-setDuration)/unsetCount : 0;
-            let beginTime:number = this._state.beginTime;
+            let beginTime:number = 0;
             let fullDuration:number = 0;
             for (let i=0; i<this.items.length; i++) {
                 let item = this.items[i];
@@ -845,6 +871,15 @@ module Anim {
     // static
     export function callFunc(callback:Function, context:any=null, params:Array<any>=null):CallFunc {
         return new CallFunc(callback, context, params);
+    }
+    export function log(...args: any[]):CallFunc {
+        return new CallFunc(console.log, console, args);
+    }
+    export function warn(...args: any[]):CallFunc {
+        return new CallFunc(console.warn, console, args);
+    }
+    export function error(...args: any[]):CallFunc {
+        return new CallFunc(console.error, console, args);
     }
 
     export function visible(value:boolean):Visible {

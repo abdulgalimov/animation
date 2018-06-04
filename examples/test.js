@@ -12,7 +12,7 @@ PIXI.loader
 
 function onAssetsLoaded(loader, res) {
     var table = new PIXI.Sprite(res.table.texture);
-    app.stage.addChild(table);
+    //app.stage.addChild(table);
     //
     var coin = new PIXI.Sprite(res.coin.texture);
     coin.x = 200;
@@ -60,10 +60,14 @@ var myAnim;
 function testAnim(coin) {
     if (1) {
         myAnim = Anim.spawn([
-            Anim.spawn([
-                Anim.rotateTo(Math.PI*2).setName('r1')
-            ]).setDuration(1000).loop().setName('c1'),
-            Anim.moveAddX(500).setDuration(4000)
+            Anim.rotateTo(Math.PI*2).setDuration(1000).loop(),
+            Anim.sequence([
+                Anim.log('ping'),
+                Anim.moveAddY(-70).easeStrongOut().setDuration(700),
+                Anim.moveAddY(70).easeRegular().setDuration(300),
+                Anim.warn('pong')
+            ]).loop(),
+            Anim.moveAddX(500).setDuration(8000)
         ])
             .setTarget(coin)
             .addListener(Anim.Events.CHANGE, onChangeAnim)

@@ -50,13 +50,6 @@ var Anim;
         global.update.apply(global, arguments);
     }
     Anim.update = update;
-    function log() {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        console.log.apply(console, args);
-    }
     function dropError(message) {
         throw new Error("AnimError: " + message);
     }
@@ -173,7 +166,7 @@ var Anim;
                     break;
                 case PlayState.PLAY:
                     this._state.elapsedTime = global.time - this._state.rootStartTime - this._pausedTime;
-                    this._update(deltaTime, this._state.elapsedTime);
+                    this._update(this._state.elapsedTime);
                     if (this._state.elapsedTime === this._state.duration) {
                         this._setPlayState(PlayState.FINISH);
                         global.del(this);
@@ -184,16 +177,9 @@ var Anim;
                     break;
             }
         };
-        Player.prototype._update = function (deltaTime, rootElapsed) {
+        Player.prototype._update = function (parentTime) {
             if (this._parent) {
-                this._state.elapsedTime = rootElapsed - this._state.beginTime;
-                if (this._loop) {
-                    if (this._state.elapsedTime > this._state.duration) {
-                        var newValue = this._state.elapsedTime - Math.floor(this._state.elapsedTime / this._state.duration) * this._state.duration;
-                        this._replay();
-                        this._state.elapsedTime = newValue;
-                    }
-                }
+                this._state.elapsedTime = parentTime - this._state.beginTime;
             }
             if (this._state.elapsedTime >= 0 && this._state.elapsedTime < this._state.duration) {
                 if (!this._isProcess) {
@@ -204,14 +190,27 @@ var Anim;
                 }
             }
             //
+            if (this._loop) {
+                if (this._state.elapsedTime > this._state.duration) {
+                    var loopCount = Math.floor(this._state.elapsedTime / this._state.duration);
+                    var newValue = this._state.elapsedTime - loopCount * this._state.duration;
+                    if (loopCount !== this._loopCount) {
+                        this._loopCount = loopCount;
+                        this._state.elapsedTime = this._state.duration;
+                        this._state.position = 1;
+                        this._apply();
+                        this._replay();
+                    }
+                    //
+                    this._state.elapsedTime = newValue;
+                }
+            }
+            //
             if (this._state.elapsedTime < 0)
                 this._state.elapsedTime = 0;
             if (this._state.elapsedTime > this._state.duration)
                 this._state.elapsedTime = this._state.duration;
             var p = this._state.duration ? this._state.elapsedTime / this._state.duration : 0;
-            if (this._name === 'c1' || this._name === 'r1') {
-                console.log('pp', p, this._state.elapsedTime, this._name);
-            }
             if (p !== this._state.position) {
                 this._state.position = p;
                 this._apply();
@@ -277,7 +276,7 @@ var Anim;
                 //
                 this._pausedTime = 0;
                 this._state.elapsedTime = time;
-                this._update(0, this._state.elapsedTime);
+                this._update(this._state.elapsedTime);
             }
         };
         Player.prototype._startCalc = function () {
@@ -298,6 +297,7 @@ var Anim;
             }
             //
             global.add(this);
+            this._loopCount = 0;
             this._pausedTime = 0;
             this._state.rootStartTime = global.time;
             this._setPlayState(PlayState.PLAY);
@@ -362,9 +362,17 @@ var Anim;
             this._state.duration = 0;
             this.activated = false;
         };
-        Static.prototype._update = function (deltaTime, rootElapsed) {
-            _super.prototype._update.call(this, deltaTime, rootElapsed);
-            if (!this.activated && rootElapsed >= this._state.beginTime) {
+        Static.prototype._replay = function () {
+            _super.prototype._replay.call(this);
+            this.activated = false;
+        };
+        Static.prototype._apply = function () {
+            _super.prototype._apply.call(this);
+        };
+        Static.prototype._update = function (parentTime) {
+            _super.prototype._update.call(this, parentTime);
+            //
+            if (!this.activated && parentTime >= this._state.beginTime) {
                 this.activated = true;
                 this._activate();
             }
@@ -611,11 +619,12 @@ var Anim;
                 this.items[i]._replay();
             }
         };
-        Group.prototype._update = function (deltaTime, rootElapsed) {
+        Group.prototype._apply = function () {
+            _super.prototype._apply.call(this);
+            //
             for (var i = 0; i < this.items.length; i++) {
-                this.items[i]._update(deltaTime, rootElapsed);
+                this.items[i]._update(this._state.elapsedTime);
             }
-            _super.prototype._update.call(this, deltaTime, rootElapsed);
         };
         return Group;
     }(Interval));
@@ -638,7 +647,7 @@ var Anim;
                 item._calculate(props);
                 maxDuration = Math.max(maxDuration, item._state.duration);
                 if (!(item._flags & Flags.STATIC))
-                    item._state.beginTime = this._state.beginTime;
+                    item._state.beginTime = 0;
             }
             if (!this._duration)
                 this._state.duration = maxDuration;
@@ -671,7 +680,7 @@ var Anim;
                 return;
             }
             var unsetDuration = unsetCount ? (this._duration - setDuration) / unsetCount : 0;
-            var beginTime = this._state.beginTime;
+            var beginTime = 0;
             var fullDuration = 0;
             for (var i = 0; i < this.items.length; i++) {
                 var item = this.items[i];
@@ -926,6 +935,30 @@ var Anim;
         return new CallFunc(callback, context, params);
     }
     Anim.callFunc = callFunc;
+    function log() {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return new CallFunc(console.log, console, args);
+    }
+    Anim.log = log;
+    function warn() {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return new CallFunc(console.warn, console, args);
+    }
+    Anim.warn = warn;
+    function error() {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return new CallFunc(console.error, console, args);
+    }
+    Anim.error = error;
     function visible(value) {
         return new Visible(value);
     }
