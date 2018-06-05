@@ -1,6 +1,6 @@
 
 
-export module Anim {
+module Anim {
     class GlobalItems {
         startTime:number = 0;
         time:number = 0;
@@ -848,11 +848,11 @@ export module Anim {
         dropError(`Invalid number of arguments. Should be 2(objects) or 4(numbers). Received ${argumentsCount}`);
     }
 
-    function getPosProps(xOrPos:number|object, y:number=0):Properties {
+    function getPosProps(xOrPos:number|Position, y:number=0):Properties {
         if (typeof xOrPos !== 'number') {
             return {
-                x: xOrPos['x'],
-                y: xOrPos['y']
+                x: xOrPos.x,
+                y: xOrPos.y
             };
         } else {
             return {
@@ -902,6 +902,16 @@ export module Anim {
         return player;
     }
 
+    export interface Position {
+        x:number;
+        y:number;
+    }
+
+    export interface Size {
+        width:number;
+        height:number;
+    }
+
     // move
     export function moveToX(x:number):Property {
         return customTo({x: x});
@@ -909,12 +919,12 @@ export module Anim {
     export function moveToY(y:number):Property {
         return customTo({y: y});
     }
-    export function moveTo(xOrPos:number|object, y:number=0):Property {
+    export function moveTo(xOrPos:number|Position, y:number=0):Property {
         return customTo(getPosProps.apply(null, arguments));
     }
     export function moveAddX(x:number):Property {return moveToX(x)._setRelative(true);}
     export function moveAddY(y:number):Property {return moveToY(y)._setRelative(true);}
-    export function moveAdd(xOrPos:number|object, y:number=0):Property {return moveTo(xOrPos, y)._setRelative(true);}
+    export function moveAdd(xOrPos:number|Position, y:number=0):Property {return moveTo(xOrPos, y)._setRelative(true);}
     export function moveFromToX(from:number, to:number):Property {return customFromTo({x:from}, {x:to});}
     export function moveFromToY(from:number, to:number):Property {return customFromTo({y:from}, {y:to});}
     export function moveFromTo(...args:any[]):Property {return prepareFromTo('x', 'y', args);}
@@ -927,7 +937,7 @@ export module Anim {
     export function scaleToY(scaleY:number):Property {
         return customTo({scaleY: scaleY});
     }
-    export function scaleTo(xOrPos:number|object, y:number=0):Property {
+    export function scaleTo(xOrPos:number|Position, y:number=0):Property {
         let props = getPosProps.apply(null, arguments);
         return customTo({
             scaleX: props.x,
@@ -936,7 +946,7 @@ export module Anim {
     }
     export function scaleAddX(x:number):Property {return scaleToX(x)._setRelative(true);}
     export function scaleAddY(y:number):Property {return scaleToY(y)._setRelative(true);}
-    export function scaleAdd(xOrPos:number|object, y:number=0):Property {return scaleTo(xOrPos, y)._setRelative(true);}
+    export function scaleAdd(xOrPos:number|Position, y:number=0):Property {return scaleTo(xOrPos, y)._setRelative(true);}
     export function scaleFromToX(from:number, to:number):Property {return customFromTo({scaleX:from}, {scaleX:to});}
     export function scaleFromToY(from:number, to:number):Property {return customFromTo({scaleY:from}, {scaleY:to});}
     export function scaleFromTo(...args:any[]):Property { return prepareFromTo('scaleX', 'scaleY', args);}
@@ -948,7 +958,7 @@ export module Anim {
     export function heightTo(height:number):Property {
         return customTo({height: height});
     }
-    export function sizeTo(widthOrSize:number|object, height:number=0):Property {
+    export function sizeTo(widthOrSize:number|Size, height:number=0):Property {
         let props:Properties;
         if (typeof widthOrSize !== 'number') {
             props = {
@@ -965,7 +975,7 @@ export module Anim {
     }
     export function widthAdd(width:number):Property {return widthTo(width)._setRelative(true);}
     export function heightAdd(height:number):Property {return heightTo(height)._setRelative(true);}
-    export function sizeAdd(widthOrSize:number|object, height:number=0):Property {return sizeAdd(widthOrSize, height)._setRelative(true);}
+    export function sizeAdd(widthOrSize:number|Size, height:number=0):Property {return sizeAdd(widthOrSize, height)._setRelative(true);}
     export function widthFromTo(from:number, to:number):Property {return customFromTo({width:from}, {width:to});}
     export function heightFromTo(from:number, to:number):Property {return customFromTo({width:from}, {width:to});}
     export function sizeFromTo(...args:any[]):Property {
@@ -999,7 +1009,7 @@ export module Anim {
     export function anchorToY(anchorY:number):Property {
         return customTo({anchorY: anchorY});
     }
-    export function anchorTo(xOrPos:number|object, y:number=0):Property {
+    export function anchorTo(xOrPos:number|Position, y:number=0):Property {
         const props = getPosProps.apply(null, arguments);
         return customTo({
             anchorX: props.x,
@@ -1008,7 +1018,7 @@ export module Anim {
     }
     export function anchorAddX(x:number):Property {return anchorToX(x)._setRelative(true);}
     export function anchorAddY(y:number):Property {return anchorToY(y)._setRelative(true);}
-    export function anchorAdd(xOrPos:number|object, y:number=0):Property {return anchorTo(xOrPos, y)._setRelative(true);}
+    export function anchorAdd(xOrPos:number|Position, y:number=0):Property {return anchorTo(xOrPos, y)._setRelative(true);}
     export function anchorFromToX(from:number, to:number):Property {return customFromTo({anchorX:from}, {anchorX:to});}
     export function anchorFromToY(from:number, to:number):Property {return customFromTo({anchorY:from}, {anchorY:to});}
     export function anchorFromTo(...args:any[]):Property { return prepareFromTo('anchorX', 'anchorY', args);}
@@ -1020,7 +1030,7 @@ export module Anim {
     export function pivotToY(pivotY:number):Property {
         return customTo({pivotY: pivotY});
     }
-    export function pivotTo(xOrPos:number|object, y:number=0):Property {
+    export function pivotTo(xOrPos:number|Position, y:number=0):Property {
         const props = getPosProps.apply(null, arguments);
         return customTo({
             pivotX: props.x,
@@ -1029,7 +1039,7 @@ export module Anim {
     }
     export function pivotAddX(x:number):Property {return pivotToX(x)._setRelative(true);}
     export function pivotAddY(y:number):Property {return pivotToY(y)._setRelative(true);}
-    export function pivotAdd(xOrPos:number|object, y:number=0):Property {return pivotTo(xOrPos, y)._setRelative(true);}
+    export function pivotAdd(xOrPos:number|Position, y:number=0):Property {return pivotTo(xOrPos, y)._setRelative(true);}
     export function pivotFromToX(from:number, to:number):Property {return customFromTo({pivotX:from}, {pivotX:to});}
     export function pivotFromToY(from:number, to:number):Property {return customFromTo({pivotY:from}, {pivotY:to});}
     export function pivotFromTo(...args:any[]):Property { return prepareFromTo('pivotX', 'pivotY', args);}

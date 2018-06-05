@@ -3,17 +3,17 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title></title>
+	<title>Position | </title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="assets/css/main.css">
+	<link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body>
 <header>
 	<div class="tsd-page-toolbar">
 		<div class="container">
 			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.js" data-base="..">
 					<div class="field">
 						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
 						<input id="tsd-search-field" type="text" />
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="index.html" class="title"></a>
+					<a href="../index.html" class="title"></a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -49,57 +49,96 @@
 		<div class="container">
 			<ul class="tsd-breadcrumb">
 				<li>
-					<a href="globals.html">Globals</a>
+					<a href="../globals.html">Globals</a>
+				</li>
+				<li>
+					<a href="../modules/_animation_.html">&quot;Animation&quot;</a>
+				</li>
+				<li>
+					<a href="../modules/_animation_.anim.html">Anim</a>
+				</li>
+				<li>
+					<a href="_animation_.anim.position.html">Position</a>
 				</li>
 			</ul>
-			<h1> </h1>
+			<h1>Interface Position</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<div class="tsd-panel tsd-typography">
-				<h1 id="example">Example</h1>
-				<pre><code class="lang-js">Anim.spawn([
-    Anim.rotateTo(<span class="hljs-built_in">Math</span>.PI*<span class="hljs-number">2</span>).setDuration(<span class="hljs-number">1000</span>).loop(),
-    Anim.sequence([
-        Anim.log(<span class="hljs-string">'ping'</span>), <span class="hljs-comment">// console.log</span>
-        Anim.spawn([
-            Anim.moveAddY(<span class="hljs-number">-70</span>).easeStrongOut(),
-            Anim.tintTo(<span class="hljs-number">0xff0000</span>),
-        ]).setDuration(<span class="hljs-number">700</span>),
-        Anim.spawn([
-            Anim.moveAddY(<span class="hljs-number">70</span>),
-            Anim.tintTo(<span class="hljs-number">0xffffff</span>),
-        ]).setDuration(<span class="hljs-number">300</span>),
-        Anim.warn(<span class="hljs-string">'pong'</span>), <span class="hljs-comment">// console.warn</span>
-        Anim.event(<span class="hljs-string">'loop_step'</span>, <span class="hljs-literal">true</span>, [<span class="hljs-number">1</span>, <span class="hljs-string">'dd'</span>]) <span class="hljs-comment">// drop custom event</span>
-    ]).loop(),
-    Anim.moveAddX(<span class="hljs-number">600</span>).setDuration(<span class="hljs-number">6000</span>)
-])
-    .addListener(<span class="hljs-string">'loop_step'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">eventData</span>) </span>{
-        <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'testEvent'</span>, eventData); <span class="hljs-comment">// log custom event</span>
-    })
-    .setTarget(coin)
-    .play();
-</code></pre>
-				<p><a href="https://youtu.be/Wi0yDsVGKUM">Demo</a></p>
-			</div>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">Position</span>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_animation_.anim.position.html#x" class="tsd-kind-icon">x</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_animation_.anim.position.html#y" class="tsd-kind-icon">y</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="x" class="tsd-anchor"></a>
+					<h3>x</h3>
+					<div class="tsd-signature tsd-kind-icon">x<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/abdulgalimov/animation/blob/858f544/src/Animation.ts#L906">Animation.ts:906</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="y" class="tsd-anchor"></a>
+					<h3>y</h3>
+					<div class="tsd-signature tsd-kind-icon">y<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/abdulgalimov/animation/blob/858f544/src/Animation.ts#L907">Animation.ts:907</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 			<nav class="tsd-navigation primary">
 				<ul>
 					<li class="globals  ">
-						<a href="globals.html"><em>Globals</em></a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_animation_.html">"<wbr>Animation"</a>
+						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface tsd-parent-kind-module">
+						<a href="_animation_.anim.position.html" class="tsd-kind-icon">Position</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="_animation_.anim.position.html#x" class="tsd-kind-icon">x</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="_animation_.anim.position.html#y" class="tsd-kind-icon">y</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
 				</ul>
 			</nav>
 		</div>
@@ -168,7 +207,7 @@
 	<p>Generated using <a href="http://typedoc.org/" target="_blank">TypeDoc</a></p>
 </div>
 <div class="overlay"></div>
-<script src="assets/js/main.js"></script>
-<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
+<script src="../assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="../assets/js/search.js"><' + '/script>');</script>
 </body>
 </html>
