@@ -78,7 +78,7 @@ class App extends PIXI.Application{
         this.myAnim =
         //
         Anim.spawn([
-            Anim.rotateTo(Math.PI*2).setDuration(1000).loop(),
+            Anim.rotateFromTo(0, Math.PI*2).setDuration(1000).loop(),
             Anim.sequence([
                 Anim.log('ping'),
                 Anim.spawn([
@@ -92,7 +92,7 @@ class App extends PIXI.Application{
                 Anim.warn('pong'),
                 Anim.event('loop_step', true, [1, 'dd'])
             ]).loop(),
-            Anim.moveAddX(600).setDuration(6000)
+            Anim.moveFromToX(100, 600).setDuration(6000)
         ]);
         //
         this.myAnim.setTarget(coin);

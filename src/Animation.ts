@@ -112,7 +112,7 @@ module Anim {
     export class Player {
         private _name:string;
         public _parent:Player = null;
-        _duration:number = 0;
+        public _duration:number = 0;
         protected _target:any;
         public _state:State;
         public _flags:number = 0;
@@ -481,14 +481,13 @@ module Anim {
     type EaseFuncType = (t:number, b:number, c:number, d:number) => number;
 
     class Property extends Interval {
-        private _props:PropsType;
         private _keys:Array<string>;
         private _relative:boolean;
         private _ease:EaseFuncType;
-        constructor(props:PropsType=null) {
+        private _toProps:PropsType;
+        private _fromProps:PropsType;
+        constructor() {
             super();
-            this.setName('property');
-            this.setProps(props);
         }
 
         easeCustom(func:EaseFuncType):Property {this._ease = func;return this;}
@@ -528,8 +527,13 @@ module Anim {
         easeBounceOut():Property {this._ease        = bounceOut;return this;}
         easeBounceInOut():Property {this._ease      = bounceInOut;return this;}
 
-        setProps(props:PropsType):Property {
-            this._props = props;
+        _setFromProps(props:PropsType):Property {
+            this._fromProps = props;
+            return this;
+        }
+
+        _setToProps(props:PropsType):Property {
+            this._toProps = props;
             this._keys = [];
             for (let key in props) {
                 this._keys.push(key);
@@ -551,37 +555,41 @@ module Anim {
             for (let i=0; i<this._keys.length; i++) {
                 const key = this._keys[i];
                 //
-                if (props.values.hasOwnProperty(key)) {
-                    this._state.from.values[key] = props.values[key];
+                if (this._fromProps) {
+                    this._state.from.values[key] = this._fromProps[key];
                 } else {
-                    let value:number;
-                    switch (key) {
-                        case 'scaleX':
-                            value = this._state.target.scale.x;
-                            break;
-                        case 'scaleY':
-                            value = this._state.target.scale.y;
-                            break;
-                        case 'anchorX':
-                            value = this._state.target.anchor.x;
-                            break;
-                        case 'anchorY':
-                            value = this._state.target.anchor.y;
-                            break;
-                        case 'pivotX':
-                            value = this._state.target.pivot.x;
-                            break;
-                        case 'pivotY':
-                            value = this._state.target.pivot.y;
-                            break;
-                        default:
-                            value = this._state.target[key];
-                            break;
+                    if (props.values.hasOwnProperty(key)) {
+                        this._state.from.values[key] = props.values[key];
+                    } else {
+                        let value: number;
+                        switch (key) {
+                            case 'scaleX':
+                                value = this._state.target.scale.x;
+                                break;
+                            case 'scaleY':
+                                value = this._state.target.scale.y;
+                                break;
+                            case 'anchorX':
+                                value = this._state.target.anchor.x;
+                                break;
+                            case 'anchorY':
+                                value = this._state.target.anchor.y;
+                                break;
+                            case 'pivotX':
+                                value = this._state.target.pivot.x;
+                                break;
+                            case 'pivotY':
+                                value = this._state.target.pivot.y;
+                                break;
+                            default:
+                                value = this._state.target[key];
+                                break;
+                        }
+                        this._state.from.values[key] = value;
                     }
-                    this._state.from.values[key] = value;
                 }
                 //
-                this._state.to.values[key] = this._props[key];
+                this._state.to.values[key] = this._toProps[key];
                 if (this._relative) {
                     this._state.to.values[key] += this._state.from.values[key];
                 }
@@ -635,7 +643,7 @@ module Anim {
         private readonly interpolateRgb:Rgb;
         public color:number;
         constructor(propName:string, withAlpha:boolean=false) {
-            super({});
+            super();
             this._flags |= Flags.COLOR;
             this.propName = propName;
             this.fromRgb = new Rgb(0, withAlpha);
@@ -684,7 +692,6 @@ module Anim {
     class Spawn extends Group {
         constructor(items:Array<Player>) {
             super(items);
-            this.setName('Spawn');
         }
 
         _calculate(props:PropsContainer):void {
@@ -698,7 +705,7 @@ module Anim {
                 }
                 item._calculate(props);
                 maxDuration = Math.max(maxDuration, item._state.duration);
-                if (!(item._flags & Flags.STATIC)) item._state.beginTime = 0;
+                item._state.beginTime = 0;
             }
             if (!this._duration) this._state.duration = maxDuration;
         }
@@ -707,10 +714,10 @@ module Anim {
     class Sequence extends Group {
         constructor(items:Array<Player>) {
             super(items);
-            this.setName('Sequence');
         }
 
         _calculate(props:PropsContainer):void {
+            super._calculate(props);
             super._calculate(props);
             //
             let setDuration:number = 0;
@@ -728,16 +735,16 @@ module Anim {
                 return;
             }
             let unsetDuration:number = unsetCount ? (this._duration-setDuration)/unsetCount : 0;
-            let beginTime:number = 0;
+            //let beginTime:number = 0;
             let fullDuration:number = 0;
             for (let i=0; i<this.items.length; i++) {
                 let item = this.items[i];
                 if (!item._duration && !(item._flags & Flags.STATIC)) {
                     item._state.duration = unsetDuration;
                 }
-                item._state.beginTime = beginTime;
+                item._state.beginTime = fullDuration;//beginTime;
                 item._calculate(props);
-                beginTime += item._state.duration;
+                //beginTime += item._state.duration;
                 fullDuration += item._state.duration;
             }
             if (!this._duration) {
@@ -748,11 +755,57 @@ module Anim {
 
     // properties ********************************************************************************
 
+    function dropErrorInvalidArguments(argumentsCount:number):void {
+        dropError(`Invalid number of arguments. Should be 2(objects) or 4(numbers). Received ${argumentsCount}`);
+    }
+
+    function getPosProps(xOrPos:number|object, y:number=0):PropsType {
+        if (typeof xOrPos !== 'number') {
+            return {
+                x: xOrPos['x'],
+                y: xOrPos['y']
+            };
+        } else {
+            return {
+                x: xOrPos,
+                y: y
+            };
+        }
+    }
+
+    function prepareFromTo(xName:string, yName:string, args:any[]):Property {
+        const from = {};
+        const to = {};
+        switch (args.length) {
+            case 2:
+                from[xName] = args[0].x;
+                from[yName] = args[0].y;
+                to[xName] = args[1].x;
+                to[yName] = args[1].y;
+                break;
+            case 4:
+                from[xName] = args[0];
+                from[yName] = args[1];
+                to[xName] = args[2];
+                to[yName] = args[3];
+                break;
+            default:
+                dropErrorInvalidArguments(args.length);
+                return null;
+        }
+        return customFromTo(from, to);
+    }
+
+
     // custom
     export function customTo(props:PropsType):Property {
-        return new Property().setProps(props);
+        return new Property()._setToProps(props);
     }
     export function customAdd(props:PropsType):Property {return customTo(props)._setRelative(true);}
+
+    export function customFromTo(from:PropsType, to:PropsType):Property {
+        return customTo(to)._setFromProps(from);
+    }
 
     export function timeout(time:number):Interval {
         const player:Interval = new Interval();
@@ -762,153 +815,156 @@ module Anim {
 
     // move
     export function moveToX(x:number):Property {
-        return new Property().setProps({x: x});
+        return customTo({x: x});
     }
     export function moveToY(y:number):Property {
-        return new Property().setProps({y: y});
+        return customTo({y: y});
     }
     export function moveTo(xOrPos:number|object, y:number=0):Property {
-        const move:Property = new Property();
-        if (typeof xOrPos !== 'number') {
-            move.setProps({
-                x: xOrPos['x'],
-                y: xOrPos['y']
-            });
-        } else {
-            move.setProps({
-                x: xOrPos,
-                y: y
-            });
-        }
-        return move;
+        return customTo(getPosProps.apply(null, arguments));
     }
     export function moveAddX(x:number):Property {return moveToX(x)._setRelative(true);}
     export function moveAddY(y:number):Property {return moveToY(y)._setRelative(true);}
     export function moveAdd(xOrPos:number|object, y:number=0):Property {return moveTo(xOrPos, y)._setRelative(true);}
+    export function moveFromToX(from:number, to:number):Property {return customFromTo({x:from}, {x:to});}
+    export function moveFromToY(from:number, to:number):Property {return customFromTo({y:from}, {y:to});}
+    export function moveFromTo(...args:any[]):Property {return prepareFromTo('x', 'y', args);}
 
 
     // scale
     export function scaleToX(scaleX:number):Property {
-        return new Property().setProps({scaleX: scaleX});
+        return customTo({scaleX: scaleX});
     }
     export function scaleToY(scaleY:number):Property {
-        return new Property().setProps({scaleY: scaleY});
+        return customTo({scaleY: scaleY});
     }
     export function scaleTo(xOrPos:number|object, y:number=0):Property {
-        const move:Property = new Property();
-        if (typeof xOrPos !== 'number') {
-            move.setProps({
-                scaleX: xOrPos['x'],
-                scaleY: xOrPos['y']
-            });
-        } else {
-            move.setProps({
-                scaleX: xOrPos,
-                scaleY: y
-            });
-        }
-        return move;
+        let props = getPosProps.apply(null, arguments);
+        return customTo({
+            scaleX: props.x,
+            scalyY: props.y
+        });
     }
     export function scaleAddX(x:number):Property {return scaleToX(x)._setRelative(true);}
     export function scaleAddY(y:number):Property {return scaleToY(y)._setRelative(true);}
     export function scaleAdd(xOrPos:number|object, y:number=0):Property {return scaleTo(xOrPos, y)._setRelative(true);}
+    export function scaleFromToX(from:number, to:number):Property {return customFromTo({scaleX:from}, {scaleX:to});}
+    export function scaleFromToY(from:number, to:number):Property {return customFromTo({scaleY:from}, {scaleY:to});}
+    export function scaleFromTo(...args:any[]):Property { return prepareFromTo('scaleX', 'scaleY', args);}
 
     // size (width, height)
     export function widthTo(width:number):Property {
-        return new Property().setProps({width: width});
+        return customTo({width: width});
     }
     export function heightTo(height:number):Property {
-        return new Property().setProps({height: height});
+        return customTo({height: height});
     }
     export function sizeTo(widthOrSize:number|object, height:number=0):Property {
-        const move:Property = new Property();
+        let props:PropsType;
         if (typeof widthOrSize !== 'number') {
-            move.setProps({
+            props = {
                 width: widthOrSize['width'],
                 height: widthOrSize['height']
-            });
+            };
         } else {
-            move.setProps({
+            props = {
                 width: widthOrSize,
                 height: height
-            });
+            };
         }
-        return move;
+        return customTo(props);
     }
     export function widthAdd(width:number):Property {return widthTo(width)._setRelative(true);}
     export function heightAdd(height:number):Property {return heightTo(height)._setRelative(true);}
     export function sizeAdd(widthOrSize:number|object, height:number=0):Property {return sizeAdd(widthOrSize, height)._setRelative(true);}
+    export function widthFromTo(from:number, to:number):Property {return customFromTo({width:from}, {width:to});}
+    export function heightFromTo(from:number, to:number):Property {return customFromTo({width:from}, {width:to});}
+    export function sizeFromTo(...args:any[]):Property {
+        switch (args.length) {
+            case 2:
+                return customFromTo({
+                    width: args[0].width,
+                    height: args[0].height
+                }, {
+                    width: args[1].width,
+                    height: args[2].height
+                });
+            case 4:
+                return customFromTo({
+                    width: args[0],
+                    height: args[1]
+                }, {
+                    width: args[2],
+                    height: args[3]
+                });
+            default:
+                dropErrorInvalidArguments(args.length);
+                return null;
+        }
+    }
 
     // anchor
     export function anchorToX(anchorX:number):Property {
-        return new Property().setProps({anchorX: anchorX});
+        return customTo({anchorX: anchorX});
     }
     export function anchorToY(anchorY:number):Property {
-        return new Property().setProps({anchorY: anchorY});
+        return customTo({anchorY: anchorY});
     }
     export function anchorTo(xOrPos:number|object, y:number=0):Property {
-        const move:Property = new Property();
-        if (typeof xOrPos !== 'number') {
-            move.setProps({
-                anchorX: xOrPos['x'],
-                anchorY: xOrPos['y']
-            });
-        } else {
-            move.setProps({
-                anchorX: xOrPos,
-                anchorY: y
-            });
-        }
-        return move;
+        const props = getPosProps.apply(null, arguments);
+        return customTo({
+            anchorX: props.x,
+            anchorY: props.y
+        });
     }
     export function anchorAddX(x:number):Property {return anchorToX(x)._setRelative(true);}
     export function anchorAddY(y:number):Property {return anchorToY(y)._setRelative(true);}
     export function anchorAdd(xOrPos:number|object, y:number=0):Property {return anchorTo(xOrPos, y)._setRelative(true);}
+    export function anchorFromToX(from:number, to:number):Property {return customFromTo({anchorX:from}, {anchorX:to});}
+    export function anchorFromToY(from:number, to:number):Property {return customFromTo({anchorY:from}, {anchorY:to});}
+    export function anchorFromTo(...args:any[]):Property { return prepareFromTo('anchorX', 'anchorY', args);}
 
     // pivot
     export function pivotToX(pivotX:number):Property {
-        return new Property().setProps({pivotX: pivotX});
+        return customTo({pivotX: pivotX});
     }
     export function pivotToY(pivotY:number):Property {
-        return new Property().setProps({pivotY: pivotY});
+        return customTo({pivotY: pivotY});
     }
     export function pivotTo(xOrPos:number|object, y:number=0):Property {
-        const move:Property = new Property();
-        if (typeof xOrPos !== 'number') {
-            move.setProps({
-                pivotX: xOrPos['x'],
-                pivotY: xOrPos['y']
-            });
-        } else {
-            move.setProps({
-                pivotX: xOrPos,
-                pivotY: y
-            });
-        }
-        return move;
+        const props = getPosProps.apply(null, arguments);
+        return customTo({
+            pivotX: props.x,
+            pivotY: props.y
+        });
     }
     export function pivotAddX(x:number):Property {return pivotToX(x)._setRelative(true);}
     export function pivotAddY(y:number):Property {return pivotToY(y)._setRelative(true);}
     export function pivotAdd(xOrPos:number|object, y:number=0):Property {return pivotTo(xOrPos, y)._setRelative(true);}
+    export function pivotFromToX(from:number, to:number):Property {return customFromTo({pivotX:from}, {pivotX:to});}
+    export function pivotFromToY(from:number, to:number):Property {return customFromTo({pivotY:from}, {pivotY:to});}
+    export function pivotFromTo(...args:any[]):Property { return prepareFromTo('pivotX', 'pivotY', args);}
 
     // rotate
     export function rotateTo(rotate:number):Property {
-        return new Property().setProps({rotation: rotate});
+        return customTo({rotation: rotate});
     }
     export function rotateAdd(rotate:number):Property {return rotateTo(rotate)._setRelative(true);}
+    export function rotateFromTo(from:number, to:number):Property {return customFromTo({rotation:from}, {rotation:to});}
 
     // alpha
     export function alphaTo(alpha:number):Property {
-        return new Property().setProps({alpha: alpha});
+        return customTo({alpha: alpha});
     }
     export function alphaAdd(alpha:number):Property {return alphaTo(alpha)._setRelative(true);}
     export function fadeIn():Property {return alphaTo(0);}
     export function fadeOut():Property {return alphaTo(1);}
+    export function alphaFromTo(from:number, to:number):Property {return customFromTo({alpha:from}, {alpha:to});}
 
     // color
     export function colorTo(propName:string, color:number, withAlpha:boolean=false):Color {
         const colorAnim:Color = new Color(propName, withAlpha);
-        colorAnim.setProps({tint: color});
+        colorAnim._setToProps({tint: color});
         return colorAnim;
     }
     export function tintTo(color:number):Color {return colorTo('tint', color);}
@@ -926,28 +982,28 @@ module Anim {
         return new CallFunc(callback, context, params);
     }
     export function log(...args: any[]):CallFunc {
-        return new CallFunc(console.log, console, args);
+        return callFunc(console.log, console, args);
     }
     export function warn(...args: any[]):CallFunc {
-        return new CallFunc(console.warn, console, args);
+        return callFunc(console.warn, console, args);
     }
     export function error(...args: any[]):CallFunc {
-        return new CallFunc(console.error, console, args);
+        return callFunc(console.error, console, args);
     }
     export function event(name:string, bubbles:boolean=false, ...args: any[]):DropEvent {
         return new DropEvent(name, bubbles, args);
     }
 
-    export function animPlay(player:Player):PlayerSetState {
+    export function playerPlay(player:Player):PlayerSetState {
         return new PlayerSetState(player, PlayState.PLAY);
     }
-    export function animPause(player:Player):PlayerSetState {
+    export function playerPause(player:Player):PlayerSetState {
         return new PlayerSetState(player, PlayState.PAUSE);
     }
-    export function animResume(player:Player):PlayerSetState {
+    export function playerResume(player:Player):PlayerSetState {
         return new PlayerSetState(player, PlayState.RESUME);
     }
-    export function animStop(player:Player):PlayerSetState {
+    export function playerStop(player:Player):PlayerSetState {
         return new PlayerSetState(player, PlayState.STOP);
     }
 
