@@ -40,11 +40,11 @@ module Anim {
         throw new Error(`AnimError: ${message}`);
     }
 
-    type PropsType = {
+    export type Properties = {
         [key:string]:number
     };
     class PropsContainer {
-        values: PropsType = {};
+        values: Properties = {};
 
         addProps(props:PropsContainer):void {
             for (let key in props.values) {
@@ -85,10 +85,10 @@ module Anim {
 
     export enum PlayState {
         STOP = 1,
-        PLAY,
-        PAUSE,
-        RESUME,
-        FINISH
+        PLAY = 2,
+        PAUSE = 3,
+        RESUME = 4,
+        FINISH = 5
     }
 
 
@@ -111,10 +111,14 @@ module Anim {
 
     export class Player {
         private _name:string;
+        /**@hidden*/
         public _parent:Player = null;
+        /**@hidden*/
         public _duration:number = 0;
         protected _target:any;
+        /**@hidden*/
         public _state:State;
+        /**@hidden*/
         public _flags:number = 0;
         private _pausedTime:number = 0;
         private _playState:PlayState = PlayState.STOP;
@@ -122,6 +126,7 @@ module Anim {
         private _isProcess:boolean;
         private _loop:Boolean;
         private _loopCount:number;
+        /**@hidden*/
         constructor() {
             this._state = new State();
         }
@@ -135,6 +140,7 @@ module Anim {
             this._dropEventData(eventData);
         }
 
+        /**@hidden*/
         _dropEventData(eventData:EventData):void {
             if (this._listeners && this._listeners[eventData.eventName]) {
                 this._listeners[eventData.eventName].func.call(
@@ -144,10 +150,12 @@ module Anim {
             }
         }
 
+        /**@hidden*/
         _setParent(parent:Player):void {
             this._parent = parent;
         }
 
+        /**@hidden*/
         _updateRoot(deltaTime:number):void {
             switch (this._playState) {
                 case PlayState.STOP:
@@ -165,6 +173,8 @@ module Anim {
                     break;
             }
         }
+
+        /**@hidden*/
         _update(parentTime:number):void {
             if (this._parent) {
                 this._state.elapsedTime = parentTime - this._state.beginTime;
@@ -215,11 +225,13 @@ module Anim {
 
         }
 
+        /**@hidden*/
         _apply():void {
 
         }
 
         private _calculated:boolean;
+        /**@hidden*/
         _calculate(props:PropsContainer):void {
             this._calculated = true;
             this._state.target = this.target;
@@ -231,6 +243,7 @@ module Anim {
             }
         }
 
+        /**@hidden*/
         _replay():void {
             this._state.elapsedTime = 0;
             this._state.position = 0;
@@ -484,8 +497,8 @@ module Anim {
         private _keys:Array<string>;
         private _relative:boolean;
         private _ease:EaseFuncType;
-        private _toProps:PropsType;
-        private _fromProps:PropsType;
+        private _toProps:Properties;
+        private _fromProps:Properties;
         constructor() {
             super();
         }
@@ -527,12 +540,12 @@ module Anim {
         easeBounceOut():Property {this._ease        = bounceOut;return this;}
         easeBounceInOut():Property {this._ease      = bounceInOut;return this;}
 
-        _setFromProps(props:PropsType):Property {
+        _setFromProps(props:Properties):Property {
             this._fromProps = props;
             return this;
         }
 
-        _setToProps(props:PropsType):Property {
+        _setToProps(props:Properties):Property {
             this._toProps = props;
             this._keys = [];
             for (let key in props) {
@@ -759,7 +772,7 @@ module Anim {
         dropError(`Invalid number of arguments. Should be 2(objects) or 4(numbers). Received ${argumentsCount}`);
     }
 
-    function getPosProps(xOrPos:number|object, y:number=0):PropsType {
+    function getPosProps(xOrPos:number|object, y:number=0):Properties {
         if (typeof xOrPos !== 'number') {
             return {
                 x: xOrPos['x'],
@@ -798,12 +811,12 @@ module Anim {
 
 
     // custom
-    export function customTo(props:PropsType):Property {
+    export function customTo(props:Properties):Property {
         return new Property()._setToProps(props);
     }
-    export function customAdd(props:PropsType):Property {return customTo(props)._setRelative(true);}
+    export function customAdd(props:Properties):Property {return customTo(props)._setRelative(true);}
 
-    export function customFromTo(from:PropsType, to:PropsType):Property {
+    export function customFromTo(from:Properties, to:Properties):Property {
         return customTo(to)._setFromProps(from);
     }
 
@@ -860,7 +873,7 @@ module Anim {
         return customTo({height: height});
     }
     export function sizeTo(widthOrSize:number|object, height:number=0):Property {
-        let props:PropsType;
+        let props:Properties;
         if (typeof widthOrSize !== 'number') {
             props = {
                 width: widthOrSize['width'],
