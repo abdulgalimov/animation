@@ -1,6 +1,6 @@
 
 
-module Anim {
+export module Anim {
     class GlobalItems {
         startTime:number = 0;
         time:number = 0;
@@ -262,10 +262,34 @@ module Anim {
             while (!self._target && self._parent) self = self._parent;
             return self._target;
         }
+
+        /**
+         * Position 0..1
+         * @returns {number}
+         */
         get position():number {return this._state.position;}
+
+        /**
+         * Time in milliseconds
+         * @returns {number}
+         */
         get elapsedTime():number {return this._state.elapsedTime;}
+        /**
+         * Duration in milliseconds
+         * @returns {number}
+         */
         get duration():number {return this._state.duration;}
+
+        /**
+         * Player is playing now
+         * @returns {boolean}
+         */
         get isProcess():boolean {return this._isProcess;}
+
+        /**
+         * Get PlayState
+         * @returns {Anim.PlayState}
+         */
         get playState():PlayState {return this._playState;}
         get loopCount():number {return this._loopCount;}
 
@@ -275,21 +299,39 @@ module Anim {
             return this;
         }
 
+        /**
+         * Set animation target object
+         * @param target
+         * @returns {Anim.Player}
+         */
         public setTarget(target:any):Player {
             this._target = target;
             return this;
         }
 
+        /**
+         * Set duration
+         * @param {number} duration Milliseconds
+         * @returns {Anim.Player}
+         */
         public setDuration(duration:number):Player {
             this._duration = duration;
             return this;
         }
 
+        /**
+         * Loop animation
+         * @returns {Anim.Player}
+         */
         public loop():Player {
             this._loop = true;
             return this;
         }
 
+        /**
+         * Goto to time animation
+         * @param {number} time Milliseconds
+         */
         public setTime(time:number):void {
             if (this._parent) dropError('Method play available in root anim only');
             //
@@ -301,6 +343,11 @@ module Anim {
                 this._update(this._state.elapsedTime);
             }
         }
+
+        /**
+         * Play animation
+         * @returns {Anim.Player}
+         */
         public play():Player {
             if (this._parent) dropError('Method play available in root anim only');
             //
@@ -319,6 +366,10 @@ module Anim {
             return this;
         }
 
+        /**
+         * Stop animation
+         * @returns {Anim.Player}
+         */
         public stop():Player {
             if (this._parent) dropError('Method stop available in root anim only');
             //
@@ -327,6 +378,9 @@ module Anim {
             return this;
         }
 
+        /**
+         * Pause animation, only if `playState === PlayState.PLAY`
+         */
         public pause():void {
             if (this._parent) dropError('Method pause available in root anim only');
             //
@@ -334,6 +388,10 @@ module Anim {
                 this._setPlayState(PlayState.PAUSE);
             }
         }
+
+        /**
+         * Resume animation, only if `playState === PlayState.PAUSE`
+         */
         public resume():void {
             if (this._parent) dropError('Method resume available in root anim only');
             //
@@ -341,6 +399,11 @@ module Anim {
                 this._setPlayState(PlayState.PLAY);
             }
         }
+
+        /**
+         * **Pause** animation, if `playState === PlayState.PLAY` <br>
+         * or **Resume** animation , if `playState === PlayState.PAUSE`
+         */
         public togglePause():void {
             if (this._parent) dropError('Method resume available in root anim only');
             //
@@ -354,6 +417,13 @@ module Anim {
             }
         }
 
+        /**
+         * Add Listener
+         * @param {string} name
+         * @param {(event: Anim.EventData) => void} func
+         * @param context
+         * @returns {Anim.Player}
+         */
         public addListener(name:string, func:(event:EventData)=>void, context:any=null):Player {
             if (!this._listeners) this._listeners = {};
             this._listeners[name] = {
@@ -363,7 +433,13 @@ module Anim {
             return this;
         }
 
-        public removeListener(name:Events, func:(event:EventData)=>void):Player {
+        /**
+         * Remove Listener
+         * @param {string} name
+         * @param {(event: Anim.EventData) => void} func
+         * @returns {Anim.Player}
+         */
+        public removeListener(name:string, func:(event:EventData)=>void):Player {
             if (!this._listeners) return this;
             delete this._listeners[name];
             return this;
