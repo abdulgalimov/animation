@@ -1,1 +1,2 @@
 theme: jekyll-theme-slate
+include: [./modules/, ./interfaces/, ./enums/, ./classes/]
