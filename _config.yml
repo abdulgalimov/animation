@@ -1,2 +1,2 @@
 theme: jekyll-theme-slate
-include: ["doc/modules/", "doc/interfaces/", "doc/enums/", "doc/classes/"]
+include: ["doc/modules/*", "doc/interfaces/*", "doc/enums/*", "doc/classes/*"]
