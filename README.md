@@ -23,4 +23,4 @@ Anim.spawn([
     .setTarget(coin)
     .play();
 ```
-[Demo](https://youtu.be/Wi0yDsVGKUM)
+[Docs and Demo](https://abdulgalimov.github.io/animation/)
