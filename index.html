@@ -1,0 +1,50 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Animation lib</title>
+	<meta name="description" content="">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">   
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="panel panel-primary">
+	<div class="panel-heading">Example</div>
+  <div class="panel-body">
+    <pre><code>
+Anim.spawn([
+    Anim.rotateTo(Math.PI*2).setDuration(1000).loop(),
+    Anim.sequence([
+        Anim.log('ping'), // console.log
+        Anim.spawn([
+            Anim.moveAddY(-70).easeStrongOut(),
+            Anim.tintTo(0xff0000),
+        ]).setDuration(700),
+        Anim.spawn([
+            Anim.moveAddY(70),
+            Anim.tintTo(0xffffff),
+        ]).setDuration(300),
+        Anim.warn('pong'), // console.warn
+        Anim.event('loop_step', true, [1, 'dd']) // drop custom event
+    ]).loop(),
+    Anim.moveAddX(600).setDuration(6000)
+])
+    .addListener('loop_step', function(eventData) {
+        console.log('testEvent', eventData); // log custom event
+    })
+    .setTarget(coin)
+    .play();
+		</code></pre>
+  </div>
+   <div class="panel-footer">
+   		<div class="btn-group btn-group-lg" role="group" aria-label="...">
+	  			<button type="button" class="btn btn-default btn-success" onclick="location.href='./doc'">Docs</button>
+	  			<button type="button" class="btn btn-default btn-primary" onclick="location.href='http://t.me/abdulgalimov'"><span class="glyphicon glyphicon-send"></span></button>
+	  			<button type="button" class="btn btn-default btn-danger" src="http://mail.ru" onclick="location.href='./examples'">Live Demo</button>
+	  	</div>
+   </div>
+</div>
+</body>
+</html>
