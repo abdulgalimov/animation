@@ -1,2 +1,2 @@
 theme: jekyll-theme-slate
-include: ["doc/modules/_animation_.html", "./doc/modules/_animation_.html", "doc/interfaces/*", "doc/enums/*", "doc/classes/*"]
+include: [doc/modules/_animation_.html, ./doc/modules/_animation_.html]
