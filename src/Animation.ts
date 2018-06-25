@@ -43,16 +43,38 @@ module Anim {
     export type Properties = {
         [key:string]:number
     };
+    export type Targets = {
+        [key:string]:Properties
+    };
     class PropsContainer {
-        values: Properties = {};
+        private targets: Targets = {};
+
+        get(target:any, key:string):number {
+            return this.targets[target.__anim_id] ? this.targets[target.__anim_id][key] : 0;
+        }
+        has(target:any, key:string):boolean {
+            return this.targets[target.__anim_id] && this.targets[target.__anim_id].hasOwnProperty(key);
+        }
+        set(target:any, key:string, value:number):void {
+            if (!this.targets[target.__anim_id]) this.targets[target.__anim_id] = {};
+            this.targets[target.__anim_id][key] = value;
+        }
+        add(target:any, key:string, value:number):void {
+            if (!this.targets[target.__anim_id]) this.targets[target.__anim_id] = {};
+            if (!this.targets[target.__anim_id][key]) this.targets[target.__anim_id][key] = 0;
+            this.targets[target.__anim_id][key] += value;
+        }
 
         addProps(props:PropsContainer):void {
-            for (let key in props.values) {
-                this.values[key] = props.values[key];
+            for (let key in props.targets) {
+                if (!this.targets[key]) this.targets[key] = {};
+                for (let key2 in props.targets[key]) {
+                    this.targets[key][key2] = props.targets[key][key2];
+                }
             }
         }
         clear():void {
-            this.values = {};
+            this.targets = {};
         }
     }
     class State {
@@ -299,6 +321,7 @@ module Anim {
             return this;
         }
 
+        private static IdCount:number = 0;
         /**
          * Set animation target object
          * @param target
@@ -306,6 +329,13 @@ module Anim {
          */
         public setTarget(target:any):Player {
             this._target = target;
+            if (!this._target.__anim_id) {
+                Object.defineProperty(this._target, '__anim_id', {
+                    value: 'anim_'+(Player.IdCount++),
+                    configurable: false,
+                    enumerable: false
+                })
+            }
             return this;
         }
 
@@ -640,15 +670,16 @@ module Anim {
             //
             this._state.from.clear();
             this._state.to.clear();
+            const target = this._state.target;
             //
             for (let i=0; i<this._keys.length; i++) {
                 const key = this._keys[i];
                 //
                 if (this._fromProps) {
-                    this._state.from.values[key] = this._fromProps[key];
+                    this._state.from.set(target, key, this._fromProps[key]);
                 } else {
-                    if (props.values.hasOwnProperty(key)) {
-                        this._state.from.values[key] = props.values[key];
+                    if (props.has(target, key)) {
+                        this._state.from.set(target, key, props.get(target, key));
                     } else {
                         let value: number;
                         switch (key) {
@@ -674,13 +705,13 @@ module Anim {
                                 value = this._state.target[key];
                                 break;
                         }
-                        this._state.from.values[key] = value;
+                        this._state.from.set(target, key, value);
                     }
                 }
                 //
-                this._state.to.values[key] = this._toProps[key];
+                this._state.to.set(target, key, this._toProps[key]);
                 if (this._relative) {
-                    this._state.to.values[key] += this._state.from.values[key];
+                    this._state.to.add(target, key, this._state.from.get(target, key));
                 }
             }
             //
@@ -698,7 +729,8 @@ module Anim {
         }
 
         protected setValue(key:string):void {
-            const value = this._state.from.values[key] + (this._state.to.values[key] - this._state.from.values[key]) * this._state.position;
+            const target = this._state.target;
+            const value = this._state.from.get(target, key) + (this._state.to.get(target, key) - this._state.from.get(target, key)) * this._state.position;
             switch (key) {
                 case 'scaleX':
                     this._state.target.scale.x = value;
@@ -743,8 +775,8 @@ module Anim {
         _calculate(props:PropsContainer):void {
             super._calculate(props);
             //
-            this.fromRgb.update(this._state.from.values[this.propName]);
-            this.toRgb.update(this._state.to.values[this.propName]);
+            this.fromRgb.update(this._state.from.get(this._state.target, this.propName));
+            this.toRgb.update(this._state.to.get(this._state.target, this.propName));
         }
 
         protected setValue(key:string):void {

@@ -12,6 +12,7 @@ class App extends PIXI.Application{
     }
 
     private coin:PIXI.Sprite;
+    private coin2:PIXI.Sprite;
     onAssetsLoaded(loader:PIXI.loaders.Loader, res:any):void {
         let table = new PIXI.Sprite(res.table.texture);
         app.stage.addChild(table);
@@ -23,6 +24,13 @@ class App extends PIXI.Application{
         coin.anchor.set(0.5);
         this.stage.addChild(coin);
         //
+        coin = new PIXI.Sprite(res.coin.texture);
+        this.coin2 = coin;
+        coin.x = 100;
+        coin.y = 200;
+        coin.anchor.set(0.5);
+        this.stage.addChild(coin);
+        //
         this.ticker.add(function() {
             Anim.update();
         });
@@ -30,6 +38,7 @@ class App extends PIXI.Application{
         this.initUI();
         this.ballAnim();
         // this.colorAnim();
+        // this.testAnim();
         this.myAnim
             .addListener(Anim.Events.CHANGE, this.onChangeAnim, this)
             .addListener(Anim.Events.END, function() {
@@ -104,6 +113,16 @@ class App extends PIXI.Application{
         const coin:PIXI.Sprite = this.coin;
         this.myAnim = Anim.tintTo(0xff0000)
             .setDuration(1000)
+            .setTarget(coin)
+            .play();
+    }
+
+    testAnim():void {
+        const coin:PIXI.Sprite = this.coin;
+        this.myAnim = Anim.spawn([
+            Anim.moveToX(200),
+            Anim.moveToX(300).setTarget(this.coin2)
+        ]).setDuration(1000)
             .setTarget(coin)
             .play();
     }
